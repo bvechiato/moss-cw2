@@ -27,10 +27,10 @@ to setup
   clear-all
   set-default-shape turtles "circle"
 
-  create-initial-network         ;; Step 1: Create the basic network structure
-  initialise-agent-attributes    ;; Step 2: Initialise belief and state attributes
 
-  layout-network                 ;; Step 3: Arrange the network layout
+  initialise-agent-attributes ;; Step 2: Initialize belief and state attributes
+
+  layout-network            ;; Step 3: Arrange the network layout
   reset-ticks
 end
 
