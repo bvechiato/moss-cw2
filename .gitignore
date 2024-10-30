@@ -1,0 +1,4 @@
+*.csv           # Exclude CSV exports
+*.xlsx          # Exclude Excel exports
+*.tmp           # Exclude temporary files
+*.nlogo~        # Exclude backup files
