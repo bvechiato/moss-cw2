@@ -2,8 +2,8 @@
 ;;; GLOBAL VARIABLES ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 globals [
-  belief-threshold       ; Temporary threshold for state transitions
-  verification-threshold
+  belief-threshold         ; Temporary threshold for state transitions
+  verification-threshold   ; Number of connections to get verified
 ]
 
 
@@ -15,7 +15,7 @@ turtles-own [
   belief                 ; Belief level of each agent (0-1)
   state                  ; Current state: "susceptible", "believe", etc.
   followers              ; List of agents following this agent
-  following
+  following              ; List of agents this agent follows
 ]
 
 
@@ -249,7 +249,7 @@ number-of-agents
 number-of-agents
 0
 1000
-278.0
+97.0
 1
 1
 NIL

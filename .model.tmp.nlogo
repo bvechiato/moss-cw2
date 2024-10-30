@@ -2,7 +2,7 @@
 ;;; GLOBAL VARIABLES ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 globals [
-  belief-threshold       ; Temporary threshold for state transitions
+  belief-threshold        ; Temporary threshold for state transitions
   verification-threshold
 ]
 
@@ -27,10 +27,10 @@ to setup
   clear-all
   set-default-shape turtles "circle"
 
+  create-initial-network         ;; Step 1: Create the basic network structure
+  initialise-agent-attributes    ;; Step 2: Initialise belief and state attributes
 
-  initialise-agent-attributes ;; Step 2: Initialize belief and state attributes
-
-  layout-network            ;; Step 3: Arrange the network layout
+  layout-network                 ;; Step 3: Arrange the network layout
   reset-ticks
 end
 
@@ -249,7 +249,7 @@ number-of-agents
 number-of-agents
 0
 1000
-278.0
+97.0
 1
 1
 NIL
