@@ -1,3 +1,7 @@
+;; include the code for network creation and layout
+__includes [ "network.nls" ]
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; GLOBAL VARIABLES ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -36,56 +40,6 @@ end
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; NETWORK CREATION PROCEDURES ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Create the initial two-node network and expand it to a scale-free structure
-to create-initial-network
-  make-initial-nodes
-  expand-network-to-scale-free
-end
-
-;; Create two initial turtles and link them
-to make-initial-nodes
-  make-node nobody       ;; First node, unattached
-  make-node turtle 0     ;; Second node, attached to first node
-end
-
-;; Create a scale-free network by adding nodes with preferential attachment
-to expand-network-to-scale-free
-  while [count turtles < number-of-agents] [
-    ask links [ set color gray ]
-    make-node find-partner
-  ]
-end
-
-;; Create a new node and link it to an existing partner node
-to make-node [old-node]
-  create-turtles 1 [
-    set color red
-    initialise-turtle
-
-    if old-node != nobody [
-      create-link-to old-node
-      move-to old-node
-      fd 25
-
-      ;; Update followers and following lists
-      ask old-node [
-        set followers lput myself followers ;; Add this node to old-node's followers
-      ]
-      set following lput old-node following  ;; Add old-node to this node's following list
-    ]
-  ]
-end
-
-;; Find a preferential partner based on an existing node's connections
-to-report find-partner
-  report [one-of both-ends] of one-of links
-end
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; INITIALISE AGENT ATTRIBUTES PROCEDURE ;;;
@@ -102,39 +56,6 @@ to initialise-turtle
   set followers []                 ;; Start with an empty list of followers
   set following []                 ;; Start with an empty list of followers
 end
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;
-;;; NETWORK LAYOUT ;;;
-;;;;;;;;;;;;;;;;;;;;;;
-
-;; Arrange the network layout for visual clarity
-to layout-network
-  repeat 3 [
-    let factor sqrt count turtles
-    layout-spring turtles links (1 / factor) (7 / factor) (1 / factor)
-    display
-  ]
-  center-layout
-end
-
-;; Keep the layout centered within the world bounds
-to center-layout
-  let x-offset max [xcor] of turtles + min [xcor] of turtles
-  let y-offset max [ycor] of turtles + min [ycor] of turtles
-  set x-offset limit-magnitude x-offset 0.1
-  set y-offset limit-magnitude y-offset 0.1
-  ask turtles [ setxy (xcor - x-offset / 2) (ycor - y-offset / 2) ]
-end
-
-;; Limit the magnitude of movement to prevent layout edges from extending too far
-to-report limit-magnitude [number limit]
-  if number > limit [ report limit ]
-  if number < (- limit) [ report (- limit) ]
-  report number
-end
-
 
 
 
@@ -249,7 +170,7 @@ number-of-agents
 number-of-agents
 0
 1000
-97.0
+335.0
 1
 1
 NIL
@@ -639,7 +560,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.3.0
+NetLogo 6.4.0
 @#$#@#$#@
 set layout? false
 set plot? false
