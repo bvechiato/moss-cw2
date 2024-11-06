@@ -29,13 +29,15 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; BELIEF UPDATING ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;
-to-report deffuant-beliefs [current-belief]
-    let x (-1 + random-float 2)
-    ifelse abs (x - current-belief) < update-opinion-threshold
-    [report (current-belief + 0.1 * (x - current-belief))]
+to-report deffuant-beliefs [current-belief post-belief]
+    ifelse abs (post-belief - current-belief) < update-opinion-threshold
+    [report (current-belief + 0.1 * (post-belief - current-belief))]
     [report current-belief]
 end
 
-to update-belief
-    set belief deffuant-beliefs belief
+to update-belief [post-belief]
+  set belief deffuant-beliefs belief post-belief
+  
+  ;; Set color based on belief, with -1 mapped to red and +1 mapped to green.
+  set color scale-color green belief -1 1
 end

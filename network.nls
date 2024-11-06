@@ -37,8 +37,6 @@ to expand-network-to-scale-free
   
   ask users [
     set size max (list 1 (length followers ^ 0.5)) 
-    set color ifelse-value (length followers > median [length followers] of users) [green] [red]
-    set color ifelse-value (length followers = 0) [blue] [color]
   ]
 end
 

@@ -40,13 +40,21 @@ to go
   tick
 
   ;; VIEW TWEETS
-  ask turtles [
-    find-tweets-in-belief-range
+  ask users [
+    let tweets-in-range sort find-tweets-in-belief-range
+
+    if length tweets-in-range > 0 [
+      foreach tweets-in-range [
+        curr_tweet ->
+        let tweet-belief [belief] of curr_tweet             ;; Get the belief of the tweet
+        update-belief tweet-belief
+      ]
+    ]
   ]
 
   ;; TWEET
   repeat number-of-agents [                       ;; Repeat for every user
-    if random-float 1 < 0.1 [                     ;; 20% chance to tweet
+    if random-float 1 < 0.5 [                     ;; 20% chance to tweet
       let selected-user one-of users              ;; Randomly select one user
       create-tweet-for-user selected-user         ;; Make that turtle post a tweet
     ]
@@ -172,9 +180,9 @@ SLIDER
 update-opinion-threshold
 update-opinion-threshold
 0
-100
-50.0
 1
+0.5
+0.1
 1
 NIL
 HORIZONTAL
