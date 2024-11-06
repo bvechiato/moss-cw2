@@ -1,0 +1,30 @@
+;; note this package declares the following variables and procedures
+;; so you must not use these names unless referring to these.
+;;
+;; variables: 
+;; procedures: create-initial-network             - called in setup
+;;             layout-network                     - called in setup 
+;;
+
+;;;;;;;;;;;;;;;;;;
+;;; ENGAGEMENT ;;;
+;;;;;;;;;;;;;;;;;;
+
+;; for each tweet
+;;  - find proportion of tweets about topic 
+
+;;;;;;;;;;;;;;;;;;;;;
+;;; ECHO CHAMBERS ;;;
+;;;;;;;;;;;;;;;;;;;;;
+
+;; local
+;; - SD of neighbour's opinion
+;; - mean for global value
+;; - plot to see a distribution of the standard deviation
+
+
+;; global
+;; - sum sign(o_i)sign(o_k) for all edges (i,k)
+;; 
+;; the > the more people are on the same side of the spectrum with other agents
+;; might be worth considering this in local networks instead

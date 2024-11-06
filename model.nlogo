@@ -1,5 +1,5 @@
 ;; include the code for network creation and layout
-__includes [ "network.nls" ]
+__includes [ "network.nls" "users.nls" "tweets.nls" "algorithms.nls"]
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -11,58 +11,46 @@ globals [
 ]
 
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; TURTLE PROPERTIES ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-turtles-own [
-  belief                 ; Belief level of each agent (0-1)
-  state                  ; Current state: "susceptible", "believe", etc.
-  followers              ; List of agents following this agent
-  following              ; List of agents this agent follows
-]
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; SETUP PROCEDURES ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 to setup
   clear-all
-  set-default-shape turtles "circle"
+  set-default-shape users "circle"
+  set-default-shape tweets "triangle"
 
-  create-initial-network         ;; Step 1: Create the basic network structure
-  initialise-agent-attributes    ;; Step 2: Initialise belief and state attributes
+  create-initial-network
 
-  layout-network                 ;; Step 3: Arrange the network layout
+  let following-list [length following] of users
+  print("- FOLLOWING")
+  print (word "Average number of following: " mean following-list)
+  print (word "Median number of following: " median following-list)
+  print (word "Maximum number of following: " max following-list)
+  print (word "Minimum number of following: " min following-list)
+
+  layout-network
   reset-ticks
 end
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; INITIALISE AGENT ATTRIBUTES PROCEDURE ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-to initialise-agent-attributes
-  ask turtles [initialise-turtle]
-end
-
-;; Assign belief values, states, and follower lists to agents
-to initialise-turtle
-  set belief random-float 1        ;; Random belief between 0 and 1
-  set state "susceptible"          ;; Default state
-  set followers []                 ;; Start with an empty list of followers
-  set following []                 ;; Start with an empty list of followers
-end
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; MAIN PROCEDURES ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 to go
+  tick
+
+  ;; VIEW TWEETS
+  ask turtles [
+    find-tweets-in-belief-range
+  ]
+
+  ;; TWEET
+  repeat number-of-agents [                       ;; Repeat for every user
+    if random-float 1 < 0.1 [                     ;; 20% chance to tweet
+      let selected-user one-of users              ;; Randomly select one user
+      create-tweet-for-user selected-user         ;; Make that turtle post a tweet
+    ]
+  ]
   tick
 end
 @#$#@#$#@
@@ -175,6 +163,38 @@ number-of-agents
 1
 NIL
 HORIZONTAL
+
+SLIDER
+12
+189
+229
+222
+update-opinion-threshold
+update-opinion-threshold
+0
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+16
+238
+198
+271
+NIL
+print-number-of-tweets
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

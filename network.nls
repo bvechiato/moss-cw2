@@ -16,17 +16,16 @@ to create-initial-network
   expand-network-to-scale-free
 end
 
-
 ;; Create two initial turtles and link them
 to make-initial-nodes
   make-node nobody 1       ;; First node, unattached
-  make-node turtle 0 1     ;; Second node, attached to first node
+  make-node user 0 1     ;; Second node, attached to first node
 end
 
 
 ;; Create a scale-free network by adding nodes with preferential attachment
 to expand-network-to-scale-free
-  while [count turtles < number-of-agents] [
+  while [count users < number-of-agents] [
     ask links [ set color gray ]
     
     ;; Decide on the number of connections based on a weighted probability
@@ -36,34 +35,18 @@ to expand-network-to-scale-free
     make-node find-partner max-connections
   ]
   
-  ask turtles [
+  ask users [
     set size max (list 1 (length followers ^ 0.5)) 
-    set color ifelse-value (length followers > median [length followers] of turtles) [green] [red]
+    set color ifelse-value (length followers > median [length followers] of users) [green] [red]
     set color ifelse-value (length followers = 0) [blue] [color]
   ]
-  
-  
-  let followers-list [length followers] of turtles
-  let following-list [length following] of turtles
-  
-  print("- FOLLOWERS")
-  print (word "Average number of followers: " mean followers-list)
-  print (word "Median number of followers: " median followers-list)
-  print (word "Maximum number of followers: " max followers-list)
-  print (word "Minimum number of followers: " min followers-list)
-  
-  print("- FOLLOWING")
-  print (word "Average number of following: " mean following-list)
-  print (word "Median number of following: " median following-list)
-  print (word "Maximum number of following: " max following-list)
-  print (word "Minimum number of following: " min following-list)
 end
 
 ;; Create a new node and link it to an existing partner node
 to make-node [old-node max-connections]
-  create-turtles 1 [
+  create-users 1 [
     set color red
-    initialise-turtle
+    initialise-users
     
     ;; Create connections up to max-connections
     let connections 0
@@ -85,21 +68,17 @@ to make-node [old-node max-connections]
   ]
 end
 
-
-
 ;; Find a preferential partner based on an existing node's connections
 to-report find-partner
-  if any? turtles [
+  if any? users [
     if any? links [
       report [one-of both-ends] of one-of links  ;; Select a turtle from an existing link
     ]
     ;; If no links, select any turtle
-    report one-of turtles
+    report one-of users
   ]
   report nobody  ;; If there are no turtles, report nobody
 end
-
-
 
 
 
@@ -110,8 +89,8 @@ end
 ;; Arrange the network layout for visual clarity
 to layout-network
   repeat 3 [
-    let factor sqrt count turtles
-    layout-spring turtles links (1 / factor) (7 / factor) (1 / factor)
+    let factor sqrt count users
+    layout-spring users links (1 / factor) (7 / factor) (1 / factor)
     display
   ]
   center-layout
@@ -119,11 +98,11 @@ end
 
 ;; Keep the layout centered within the world bounds
 to center-layout
-  let x-offset max [xcor] of turtles + min [xcor] of turtles
-  let y-offset max [ycor] of turtles + min [ycor] of turtles
+  let x-offset max [xcor] of users + min [xcor] of users
+  let y-offset max [ycor] of users + min [ycor] of users
   set x-offset limit-magnitude x-offset 0.1
   set y-offset limit-magnitude y-offset 0.1
-  ask turtles [ setxy (xcor - x-offset / 2) (ycor - y-offset / 2) ]
+  ask users [ setxy (xcor - x-offset / 2) (ycor - y-offset / 2) ]
 end
 
 ;; Limit the magnitude of movement to prevent layout edges from extending too far

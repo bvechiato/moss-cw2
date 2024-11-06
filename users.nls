@@ -1,0 +1,41 @@
+;;;;;;;;;;;;;;;;;;;;;;;
+;;; USER PROPERTIES ;;;
+;;;;;;;;;;;;;;;;;;;;;;;
+breed [users user]
+
+users-own [
+  belief                 ; Belief level of each agent (-1 to +1)
+  state                  ; Current state: "susceptible", "believe", etc.
+  followers              ; List of agents following this agent
+  following              ; List of agents this agent follows
+]
+
+
+;;;;;;;;;;;;;;;;;
+;;; INIT USER ;;;
+;;;;;;;;;;;;;;;;;
+to initialise-agent-attributes
+  ask users [initialise-users]
+end
+
+;; Assign belief values, states, and follower lists to agents
+to initialise-users
+  set belief (random-float 2 - 1)    ;; Random belief between -1 and 1
+  set followers []                   ;; Start with an empty list of followers
+  set following []                   ;; Start with an empty list of followers
+end
+
+
+;;;;;;;;;;;;;;;;;;;;;;;
+;;; BELIEF UPDATING ;;;
+;;;;;;;;;;;;;;;;;;;;;;;
+to-report deffuant-beliefs [current-belief]
+    let x (-1 + random-float 2)
+    ifelse abs (x - current-belief) < update-opinion-threshold
+    [report (current-belief + 0.1 * (x - current-belief))]
+    [report current-belief]
+end
+
+to update-belief
+    set belief deffuant-beliefs belief
+end

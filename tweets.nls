@@ -1,0 +1,22 @@
+breed [tweets tweet]
+
+tweets-own [
+  belief           ;; Belief level associated with the tweet (-1 to 1)
+  poster           ;; The turtle who posted the tweet
+  retweets         ;; Number of retweets this tweet has
+]
+
+to create-tweet-for-user [who-posted]
+  create-tweets 1 [
+    set belief [belief] of who-posted
+    set poster who-posted
+    set retweets 0
+    set color white  ;; Set the color for visual representation
+    set size 1
+    move-to who-posted  ;; Position the tweet where the poster (turtle) is
+  ]
+end
+
+to print-number-of-tweets
+  print (word "Number of tweets: " count tweets)
+end

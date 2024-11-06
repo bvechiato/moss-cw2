@@ -1,0 +1,21 @@
+;; note this package declares the following variables and procedures
+;; so you must not use these names unless referring to these.
+;;
+;; variables: 
+;; procedures: find-tweets-in-belief-range
+;;
+
+to find-tweets-in-belief-range
+  let min-belief belief - 0.5
+  let max-belief belief + 0.5
+  
+  ;; Gather tweets within the range of +/- 0.5 of turtle's belief
+  let tweets-in-range tweets with [
+    belief >= min-belief and belief <= max-belief
+  ]
+  
+  ;; Limit to 10 tweets if there are more than 10
+  if count tweets-in-range > 10 [
+    set tweets-in-range n-of 10 tweets-in-range
+  ]
+end
