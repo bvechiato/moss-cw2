@@ -7,7 +7,6 @@ __includes [ "network.nls" "users.nls" "tweets.nls" "algorithms.nls"]
 ;;;;;;;;;;;;;;;;;;;;;;;;
 globals [
   belief-threshold         ; Temporary threshold for state transitions
-  verification-threshold   ; Number of connections to get verified
 ]
 
 
@@ -35,8 +34,23 @@ to go
   tick
 
   ;; VIEW TWEETS
+  let tweets-in-range []
   ask users [
-    let tweets-in-range sort find-most-popular-tweets
+    if algorithm-choice = "by-chronological-order" [
+      set tweets-in-range sort find-most-recent-tweets
+    ]
+    if algorithm-choice = "random" [
+      set tweets-in-range sort find-random-tweets
+    ]
+    if algorithm-choice = "by-popularity" [
+      set tweets-in-range sort find-most-popular-tweets
+    ]
+    if algorithm-choice = "by-belief-local" [
+      set tweets-in-range sort find-tweets-in-belief-range-local
+    ]
+    if algorithm-choice = "by-belief-global" [
+      set tweets-in-range sort find-tweets-in-belief-range-global
+    ]
 
     if length tweets-in-range > 0 [
       foreach tweets-in-range [
@@ -47,7 +61,7 @@ to go
         update-belief tweet-belief
 
         ;; RETWEET
-        if random-float 1 < 0.2 [  ;; 20% chance to retweet
+        if random-float 1 < chance-of-retweeting [
           ask curr_tweet [ retweet ]
         ]
       ]
@@ -57,13 +71,20 @@ to go
 
   ;; TWEET
   repeat number-of-agents [                       ;; Repeat for every user
-    if random-float 1 < 0.5 [                     ;; 20% chance to tweet
+    if random-float 1 < chance-of-tweeting [
       let selected-user one-of users              ;; Randomly select one user
       create-tweet-for-user selected-user         ;; Make that turtle post a tweet
     ]
   ]
 
   plot-belief-dist
+
+  while [count tweets > 1000] [
+  ;; Find and delete the oldest tweet based on the `time-posted` variable
+  let oldest-tweet min-one-of tweets [time-posted]
+  ask oldest-tweet [ die ]
+]
+
   tick
 end
 @#$#@#$#@
@@ -129,25 +150,25 @@ NIL
 0
 
 SLIDER
-7
-60
-245
-93
+5
+68
+194
+101
 number-of-agents
 number-of-agents
 0
 1000
-296.0
+201.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-7
-106
-246
-139
+6
+113
+196
+146
 update-opinion-threshold
 update-opinion-threshold
 0
@@ -159,10 +180,10 @@ NIL
 HORIZONTAL
 
 PLOT
-7
-357
-303
-484
+6
+515
+302
+642
 Follower/Following Distribution
 # of followers
 freq
@@ -179,9 +200,9 @@ PENS
 
 MONITOR
 7
-151
+455
 122
-196
+500
 NIL
 number-of-tweets
 0
@@ -189,10 +210,10 @@ number-of-tweets
 11
 
 PLOT
-8
-203
-245
-348
+7
+299
+244
+444
 Belief Distribution
 belief
 # of users
@@ -205,6 +226,46 @@ false
 "" ""
 PENS
 "default" 0.1 1 -16777216 true "" ""
+
+SLIDER
+6
+156
+196
+189
+chance-of-retweeting
+chance-of-retweeting
+0
+1
+0.2
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+5
+199
+196
+232
+chance-of-tweeting
+chance-of-tweeting
+0
+1
+0.2
+0.1
+1
+NIL
+HORIZONTAL
+
+CHOOSER
+5
+243
+196
+288
+algorithm-choice
+algorithm-choice
+"by-belief-global" "by-belief-local" "random" "by-popularity" "by-chronological-order"
+2
 
 @#$#@#$#@
 ## WHAT IS IT?

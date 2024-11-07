@@ -120,16 +120,16 @@ end
 ;;;;;;;;;;;;;
 
 to plot-followers-following
-  set-current-plot "Follower Distribution"
-  set-plot-x-range 0 (number-of-agents / 2)  ;; Adjust max x based on expected range
-  set-plot-y-range 0 (number-of-agents / 4)  ;; Adjust max y to accommodate max frequency
+  set-current-plot "Follower/Following Distribution"
+  set-plot-x-range 0 number-of-agents  ;; Adjust max x based on expected range
+  set-plot-y-range 0 number-of-agents  ;; Adjust max y to accommodate max frequency
   clear-plot
-  histogram [length followers] of users  ;; Non-cumulative frequency plot for following count
   
+  set-current-plot-pen "following"
+  set-plot-pen-color red
+  histogram [length following] of users
   
-  set-current-plot "Following Distribution"
-  set-plot-x-range 0 (number-of-agents / 2)  ;; Adjust max x based on expected range
-  set-plot-y-range 0 (number-of-agents / 4)  ;; Adjust max y to accommodate max frequency
-  clear-plot
-  histogram [length following] of users  ;; Non-cumulative frequency plot for following count
+  set-current-plot-pen "followers"
+  set-plot-pen-color blue
+  histogram [length followers] of users  
 end
