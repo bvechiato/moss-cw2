@@ -181,7 +181,7 @@ update-opinion-threshold
 update-opinion-threshold
 0
 1
-0.5
+0.2
 0.1
 1
 NIL
