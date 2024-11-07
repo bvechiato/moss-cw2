@@ -37,6 +37,9 @@ to expand-network-to-scale-free
   
   ask users [
     set size max (list 1 (length followers ^ 0.5)) 
+    let red-component (1 - belief) * 255
+    let green-component (1 + belief) * 255
+    set color rgb red-component green-component 0
   ]
 end
 
@@ -108,4 +111,25 @@ to-report limit-magnitude [number limit]
   if number > limit [ report limit ]
   if number < (- limit) [ report (- limit) ]
   report number
+end
+
+
+
+;;;;;;;;;;;;;
+;;; PLOTS ;;;
+;;;;;;;;;;;;;
+
+to plot-followers-following
+  set-current-plot "Follower Distribution"
+  set-plot-x-range 0 (number-of-agents / 2)  ;; Adjust max x based on expected range
+  set-plot-y-range 0 (number-of-agents / 4)  ;; Adjust max y to accommodate max frequency
+  clear-plot
+  histogram [length followers] of users  ;; Non-cumulative frequency plot for following count
+  
+  
+  set-current-plot "Following Distribution"
+  set-plot-x-range 0 (number-of-agents / 2)  ;; Adjust max x based on expected range
+  set-plot-y-range 0 (number-of-agents / 4)  ;; Adjust max y to accommodate max frequency
+  clear-plot
+  histogram [length following] of users  ;; Non-cumulative frequency plot for following count
 end

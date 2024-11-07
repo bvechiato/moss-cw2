@@ -12,7 +12,7 @@ to-report find-tweets-in-belief-range
   ;; Gather tweets within the range of +/- 0.5 of turtle's belief
   let tweets-in-range tweets with [
     belief >= min-belief and belief <= max-belief 
-    ;; for local add: and member? [poster] of self [following] of myself
+    and member? [poster] of self [following] of myself         ;; only within local network
   ]
   
   ;; Limit to 10 tweets if there are more than 10
@@ -21,4 +21,36 @@ to-report find-tweets-in-belief-range
   ]
   
   report tweets-in-range
+end
+
+to-report find-random-tweets
+  if count tweets > 10 [
+    let random-tweets n-of 10 tweets  ;; Select 10 random tweets from the entire list
+    report random-tweets
+  ]
+  report tweets
+end
+
+to-report find-most-recent-tweets
+  let sorted-tweets sort-on [time-posted] tweets  ;; Sort tweets by time-posted in ascending order
+  if count tweets > 10 [
+    let most-recent-tweets n-of 10 sorted-tweets  ;; Select the 10 most recent tweets
+    report most-recent-tweets
+  ]
+  report tweets
+end
+
+to-report find-most-popular-tweets
+  ;; Sort tweets by a combined score: (retweets + poster's number of followers)
+  let sorted-tweets sort-on [
+    let poster-followers count [followers] of poster  ;; Get the number of followers of the poster
+    retweets + poster-followers  ;; Combine retweets and poster's followers
+  ] tweets
+  
+  ;; If there are more than 10 tweets, select the top 10 based on the combined score
+  if count tweets > 10 [
+    let most-popular-tweets n-of 10 sorted-tweets  ;; Select the 10 most popular tweets
+    report most-popular-tweets
+  ]
+  report tweets  ;; If there are fewer than 10 tweets, return all of them
 end

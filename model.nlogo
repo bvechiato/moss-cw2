@@ -21,14 +21,9 @@ to setup
 
   create-initial-network
 
-  let following-list [length following] of users
-  print("- FOLLOWING")
-  print (word "Average number of following: " mean following-list)
-  print (word "Median number of following: " median following-list)
-  print (word "Maximum number of following: " max following-list)
-  print (word "Minimum number of following: " min following-list)
-
   layout-network
+  plot-followers-following
+  plot-belief-dist
   reset-ticks
 end
 
@@ -41,16 +36,24 @@ to go
 
   ;; VIEW TWEETS
   ask users [
-    let tweets-in-range sort find-tweets-in-belief-range
+    let tweets-in-range sort find-most-popular-tweets
 
     if length tweets-in-range > 0 [
       foreach tweets-in-range [
         curr_tweet ->
         let tweet-belief [belief] of curr_tweet             ;; Get the belief of the tweet
+
+        ;; UPDATE BELIEF
         update-belief tweet-belief
+
+        ;; RETWEET
+        if random-float 1 < 0.2 [  ;; 20% chance to retweet
+          ask curr_tweet [ retweet ]
+        ]
       ]
     ]
   ]
+
 
   ;; TWEET
   repeat number-of-agents [                       ;; Repeat for every user
@@ -59,17 +62,19 @@ to go
       create-tweet-for-user selected-user         ;; Make that turtle post a tweet
     ]
   ]
+
+  plot-belief-dist
   tick
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-345
+317
 10
-958
+930
 624
 -1
 -1
-5.0
+5.49
 1
 10
 1
@@ -90,10 +95,10 @@ ticks
 60.0
 
 BUTTON
-6
-25
-72
-58
+7
+15
+123
+48
 NIL
 setup
 NIL
@@ -107,46 +112,12 @@ NIL
 1
 
 BUTTON
-93
-64
-170
-97
-NIL
-go
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-0
-
-BUTTON
-6
-64
-91
-97
-go-once
-go
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-0
-
-BUTTON
-7
-102
-133
 135
-layout-network
-layout-network
+14
+247
+47
+NIL
+go
 T
 1
 T
@@ -158,25 +129,25 @@ NIL
 0
 
 SLIDER
-9
-142
-182
-175
+7
+60
+245
+93
 number-of-agents
 number-of-agents
 0
 1000
-335.0
+296.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-12
-189
-229
-222
+7
+106
+246
+139
 update-opinion-threshold
 update-opinion-threshold
 0
@@ -187,22 +158,53 @@ update-opinion-threshold
 NIL
 HORIZONTAL
 
-BUTTON
-16
-238
-198
-271
+PLOT
+7
+357
+303
+484
+Follower/Following Distribution
+# of followers
+freq
+0.0
+200.0
+0.0
+200.0
+false
+true
+"" ""
+PENS
+"followers" 10.0 0 -16777216 true "" ""
+"following" 10.0 0 -7500403 true "" ""
+
+MONITOR
+7
+151
+122
+196
 NIL
-print-number-of-tweets
-NIL
+number-of-tweets
+0
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
+11
+
+PLOT
+8
+203
+245
+348
+Belief Distribution
+belief
+# of users
+-1.0
+1.0
+0.0
+200.0
+false
+false
+"" ""
+PENS
+"default" 0.1 1 -16777216 true "" ""
 
 @#$#@#$#@
 ## WHAT IS IT?

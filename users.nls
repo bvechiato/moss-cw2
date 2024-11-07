@@ -38,6 +38,18 @@ end
 to update-belief [post-belief]
   set belief deffuant-beliefs belief post-belief
   
-  ;; Set color based on belief, with -1 mapped to red and +1 mapped to green.
-  set color scale-color green belief -1 1
+  let red-component (1 - belief) * 255
+  let green-component (1 + belief) * 255
+  set color rgb red-component green-component 0
+end
+
+
+;;;;;;;;;;;;;
+;;; PLOTS ;;;
+;;;;;;;;;;;;;
+to plot-belief-dist
+  set-current-plot "Belief Distribution"
+  clear-plot
+  set-plot-y-range 0 number-of-agents
+  histogram [belief] of users   ;; Plot beliefs for all users
 end
