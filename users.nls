@@ -8,6 +8,7 @@ users-own [
   state                  ; Current state: "susceptible", "believe", etc.
   followers              ; List of agents following this agent
   following              ; List of agents this agent follows
+  average-echo
 ]
 
 

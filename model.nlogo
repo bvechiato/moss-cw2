@@ -1,5 +1,5 @@
 ;; include the code for network creation and layout
-__includes [ "network.nls" "users.nls" "tweets.nls" "algorithms.nls"]
+__includes [ "network.nls" "users.nls" "tweets.nls" "algorithms.nls" ]
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -7,6 +7,7 @@ __includes [ "network.nls" "users.nls" "tweets.nls" "algorithms.nls"]
 ;;;;;;;;;;;;;;;;;;;;;;;;
 globals [
   belief-threshold         ; Temporary threshold for state transitions
+  users-in-network         ; keeps track on num of users with at leas 1 connection
 ]
 
 
@@ -20,9 +21,14 @@ to setup
 
   create-initial-network
 
+  set users-in-network 0
+
   layout-network
   plot-followers-following
   plot-belief-dist
+  update-opinion-disstribution
+  plot-echochamber-distribution
+  plot-echochamber-average
   reset-ticks
 end
 
@@ -60,6 +66,7 @@ to go
         ;; UPDATE BELIEF
         update-belief tweet-belief
 
+
         ;; RETWEET
         if random-float 1 < chance-of-retweeting [
           ask curr_tweet [ retweet ]
@@ -78,6 +85,10 @@ to go
   ]
 
   plot-belief-dist
+  ;; update echochamber tracking
+  update-opinion-disstribution
+  plot-echochamber-distribution
+  plot-echochamber-average
 
   while [count tweets > 1000] [
   ;; Find and delete the oldest tweet based on the `time-posted` variable
@@ -87,12 +98,49 @@ to go
 
   tick
 end
+
+;;;;;;;;;;;;;
+;;; PLOTS ;;;
+;;;;;;;;;;;;;
+
+to update-opinion-disstribution
+
+  ask turtles [
+   if count link-neighbors > 0 [
+       set users-in-network users-in-network + 1
+      let echochamber 0
+      ask link-neighbors [
+        set echochamber echochamber + abs(belief - [belief] of myself )
+      ]
+      set average-echo echochamber / count link-neighbors
+    ]
+  ]
+end
+
+
+to plot-echochamber-distribution
+  set-current-plot "Opinion Diffrence Distribution"
+  clear-plot
+  set-plot-y-range 0 number-of-agents
+  histogram [average-echo] of users
+end
+
+
+to plot-echochamber-average
+  set-current-plot "Average Opinion Differance"
+  plot mean [average-echo] of users
+  ;;set-plot-x-range 0 2
+  ;;clear-plot
+  ;;set-current-plot-pen "echochamber"
+  ;;set-plot-pen-color red
+  ;;histogram sum[average-echo] of users / users-in-network
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-317
+491
 10
-930
-624
+1163
+683
 -1
 -1
 5.49
@@ -116,9 +164,9 @@ ticks
 60.0
 
 BUTTON
-7
+80
 15
-123
+196
 48
 NIL
 setup
@@ -133,9 +181,9 @@ NIL
 1
 
 BUTTON
-135
+208
 14
-247
+320
 47
 NIL
 go
@@ -151,39 +199,39 @@ NIL
 
 SLIDER
 5
-68
+60
 194
-101
+93
 number-of-agents
 number-of-agents
 0
 1000
-201.0
+526.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-6
-113
-196
-146
+5
+104
+195
+137
 update-opinion-threshold
 update-opinion-threshold
 0
 1
-0.2
+0.7
 0.1
 1
 NIL
 HORIZONTAL
 
 PLOT
-6
-515
-302
-642
+8
+200
+461
+327
 Follower/Following Distribution
 # of followers
 freq
@@ -199,10 +247,10 @@ PENS
 "following" 10.0 0 -7500403 true "" ""
 
 MONITOR
-7
-455
-122
-500
+209
+146
+324
+191
 NIL
 number-of-tweets
 0
@@ -211,9 +259,9 @@ number-of-tweets
 
 PLOT
 7
-299
-244
-444
+336
+227
+481
 Belief Distribution
 belief
 # of users
@@ -228,10 +276,10 @@ PENS
 "default" 0.1 1 -16777216 true "" ""
 
 SLIDER
-6
-156
-196
-189
+209
+61
+399
+94
 chance-of-retweeting
 chance-of-retweeting
 0
@@ -243,15 +291,15 @@ NIL
 HORIZONTAL
 
 SLIDER
-5
-199
-196
-232
+208
+104
+399
+137
 chance-of-tweeting
 chance-of-tweeting
 0
 1
-0.2
+1.0
 0.1
 1
 NIL
@@ -259,13 +307,49 @@ HORIZONTAL
 
 CHOOSER
 5
-243
-196
-288
+145
+195
+190
 algorithm-choice
 algorithm-choice
 "by-belief-global" "by-belief-local" "random" "by-popularity" "by-chronological-order"
-2
+0
+
+PLOT
+240
+336
+461
+481
+Opinion Diffrence Distribution
+opinion diffrence
+# of users
+0.0
+2.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"pen-0" 0.1 1 -7500403 true "" ""
+
+PLOT
+7
+491
+462
+623
+Average Opinion Differance
+NIL
+NIL
+0.0
+10.0
+0.0
+2.0
+true
+false
+"" ""
+PENS
+"echochamber" 1.0 0 -16777216 true "" ""
 
 @#$#@#$#@
 ## WHAT IS IT?
