@@ -31,7 +31,7 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;
 to-report deffuant-beliefs [current-belief post-belief]
     ifelse abs (post-belief - current-belief) < update-opinion-threshold
-    [report (current-belief + 0.1 * (post-belief - current-belief))]
+    [report (current-belief + 0.05 * (post-belief - current-belief))]
     [report current-belief]
 end
 

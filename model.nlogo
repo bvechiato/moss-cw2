@@ -18,6 +18,8 @@ to setup
   set-default-shape users "circle"
   set-default-shape tweets "triangle"
 
+  random-seed 47822
+
   create-initial-network
 
   layout-network
@@ -80,10 +82,10 @@ to go
   plot-belief-dist
 
   while [count tweets > 1000] [
-  ;; Find and delete the oldest tweet based on the `time-posted` variable
-  let oldest-tweet min-one-of tweets [time-posted]
-  ask oldest-tweet [ die ]
-]
+    ;; Find and delete the oldest tweet based on the `time-posted` variable
+    let oldest-tweet min-one-of tweets [time-posted]
+    ask oldest-tweet [ die ]
+  ]
 
   tick
 end
@@ -91,8 +93,8 @@ end
 GRAPHICS-WINDOW
 317
 10
-930
-624
+989
+683
 -1
 -1
 5.49
@@ -173,7 +175,7 @@ update-opinion-threshold
 update-opinion-threshold
 0
 1
-0.2
+0.1
 0.1
 1
 NIL
@@ -251,7 +253,7 @@ chance-of-tweeting
 chance-of-tweeting
 0
 1
-0.2
+0.1
 0.1
 1
 NIL
@@ -265,7 +267,7 @@ CHOOSER
 algorithm-choice
 algorithm-choice
 "by-belief-global" "by-belief-local" "random" "by-popularity" "by-chronological-order"
-2
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
