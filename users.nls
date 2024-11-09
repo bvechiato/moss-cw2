@@ -9,6 +9,7 @@ users-own [
   followers              ; List of agents following this agent
   following              ; List of agents this agent follows
   average-echo
+  seen
 ]
 
 

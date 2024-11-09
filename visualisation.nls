@@ -1,0 +1,29 @@
+;;;;;;;;;;;;;
+;;; PLOTS ;;;
+;;;;;;;;;;;;;
+to update-opinion-disstribution
+  ask users [
+    ;; if user has any connections
+    if count link-neighbors > 0 [
+      set users-in-network users-in-network + 1
+      let echochamber 0
+
+      ;; ask connections
+      ask link-neighbors [
+        ;; add to my echo chamber as our difference in belief
+        set echochamber echochamber + abs(belief - [belief] of myself)
+      ]
+
+      ;; set user's average
+      set average-echo echochamber / count link-neighbors
+    ]
+  ]
+end
+
+
+to plot-echochamber-distribution
+  set-current-plot "Opinion Difference Distribution"
+  clear-plot
+  set-plot-y-range 0 number-of-agents
+  histogram [average-echo] of users
+end

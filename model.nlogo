@@ -1,19 +1,16 @@
 ;; include the code for network creation and layout
-__includes [ "network.nls" "users.nls" "tweets.nls" "algorithms.nls" ]
+__includes [ "network.nls" "users.nls" "tweets.nls" "algorithms.nls" "visualisation.nls"]
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;
-;;; GLOBAL VARIABLES ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;
 globals [
   belief-threshold         ; Temporary threshold for state transitions
   users-in-network         ; keeps track on num of users with at leas 1 connection
+  global-echo-chamber-evaluation
 ]
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;
-;;; SETUP PROCEDURES ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;; SETUP ;;;
+;;;;;;;;;;;;;
 to setup
   clear-all
   set-default-shape users "circle"
@@ -24,20 +21,19 @@ to setup
   create-initial-network
 
   set users-in-network 0
+  reset-ticks
 
   layout-network
   plot-followers-following
-  plot-belief-dist
-  update-opinion-disstribution
-  plot-echochamber-distribution
-  plot-echochamber-average
-  reset-ticks
+
+  update-opinion-distribution
+  get-global-echo-chamber-evaluation
 end
 
 
-;;;;;;;;;;;;;;;;;;;;;;;
-;;; MAIN PROCEDURES ;;;
-;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;
+;;; GO ;;;
+;;;;;;;;;;
 to go
   tick
 
@@ -63,19 +59,33 @@ to go
     if length tweets-in-range > 0 [
       foreach tweets-in-range [
         curr_tweet ->
-        let tweet-belief [belief] of curr_tweet             ;; Get the belief of the tweet
+        let tweet-belief [belief] of curr_tweet
 
         ;; UPDATE BELIEF
         update-belief tweet-belief
+
+        ;; UPDATE EXPOSURE
+        ;; atiqi paper only calculates this once - i'm not sure we want to keep this?
+        if exposed = false [
+          set exposed true
+          update-opinion tweet-belief
+        ]
 
 
         ;; RETWEET
         if random-float 1 < chance-of-retweeting [
           ask curr_tweet [ retweet ]
         ]
+
+        ;; ADD TO SEEN LIST
+        set seen lput curr_tweet seen
       ]
     ]
   ]
+
+  ;; update echochamber tracking
+  update-opinion-distribution
+  get-global-echo-chamber-evaluation
 
 
   ;; TWEET
@@ -86,13 +96,9 @@ to go
     ]
   ]
 
-  plot-belief-dist
-  ;; update echochamber tracking
-  update-opinion-disstribution
-  plot-echochamber-distribution
-  plot-echochamber-average
 
-  while [count tweets > 1000] [
+  ;; REMOVE OLD TWEETS
+  while [count tweets > 2000] [
     ;; Find and delete the oldest tweet based on the `time-posted` variable
     let oldest-tweet min-one-of tweets [time-posted]
     ask oldest-tweet [ die ]
@@ -101,48 +107,13 @@ to go
   tick
 end
 
-;;;;;;;;;;;;;
-;;; PLOTS ;;;
-;;;;;;;;;;;;;
 
-to update-opinion-disstribution
-
-  ask turtles [
-   if count link-neighbors > 0 [
-       set users-in-network users-in-network + 1
-      let echochamber 0
-      ask link-neighbors [
-        set echochamber echochamber + abs(belief - [belief] of myself )
-      ]
-      set average-echo echochamber / count link-neighbors
-    ]
-  ]
-end
-
-
-to plot-echochamber-distribution
-  set-current-plot "Opinion Diffrence Distribution"
-  clear-plot
-  set-plot-y-range 0 number-of-agents
-  histogram [average-echo] of users
-end
-
-
-to plot-echochamber-average
-  set-current-plot "Average Opinion Differance"
-  plot mean [average-echo] of users
-  ;;set-plot-x-range 0 2
-  ;;clear-plot
-  ;;set-current-plot-pen "echochamber"
-  ;;set-plot-pen-color red
-  ;;histogram sum[average-echo] of users / users-in-network
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
-491
-10
-989
-683
+496
+12
+1168
+685
 -1
 -1
 5.49
@@ -166,10 +137,10 @@ ticks
 60.0
 
 BUTTON
-80
-15
-196
-48
+9
+14
+125
+47
 NIL
 setup
 NIL
@@ -183,10 +154,10 @@ NIL
 1
 
 BUTTON
-208
-14
-320
-47
+135
+13
+233
+46
 NIL
 go
 T
@@ -202,13 +173,13 @@ NIL
 SLIDER
 5
 60
-194
+163
 93
 number-of-agents
 number-of-agents
 0
 1000
-526.0
+340.0
 1
 1
 NIL
@@ -216,9 +187,9 @@ HORIZONTAL
 
 SLIDER
 5
-104
-195
-137
+105
+191
+138
 update-opinion-threshold
 update-opinion-threshold
 0
@@ -230,10 +201,10 @@ NIL
 HORIZONTAL
 
 PLOT
-8
-200
-461
-327
+5
+148
+313
+268
 Follower/Following Distribution
 # of followers
 freq
@@ -249,10 +220,10 @@ PENS
 "following" 10.0 0 -7500403 true "" ""
 
 MONITOR
-209
-146
-324
-191
+361
+39
+489
+84
 NIL
 number-of-tweets
 0
@@ -260,10 +231,10 @@ number-of-tweets
 11
 
 PLOT
-7
-336
-227
-481
+323
+146
+483
+266
 Belief Distribution
 belief
 # of users
@@ -275,47 +246,122 @@ false
 false
 "" ""
 PENS
-"default" 0.1 1 -16777216 true "" ""
+"default" 0.1 1 -16777216 true "" "histogram [belief] of users"
 
 SLIDER
-209
-61
-399
-94
+172
+59
+344
+92
 chance-of-retweeting
 chance-of-retweeting
 0
 1
-0.2
+0.1
 0.1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-208
+201
 104
-399
+355
 137
 chance-of-tweeting
 chance-of-tweeting
 0
 1
-0.2
+0.5
 0.1
 1
 NIL
 HORIZONTAL
 
 CHOOSER
-5
-145
-195
-190
+361
+93
+491
+138
 algorithm-choice
 algorithm-choice
 "by-belief-global" "by-belief-local" "random" "by-popularity" "by-chronological-order"
-2
+0
+
+PLOT
+7
+277
+233
+397
+Opinion Difference Distribution
+opinion difference
+# of users
+0.0
+2.0
+0.0
+10.0
+false
+false
+"set-plot-y-range 0 number-of-agents / 2" ""
+PENS
+"pen-0" 0.1 1 -16777216 true "" "histogram [average-echo] of users"
+
+PLOT
+240
+277
+486
+397
+Average Opinion Difference
+ticks
+NIL
+0.0
+2.0
+0.0
+2.0
+false
+true
+"set-plot-x-range 0 2" "ifelse ticks > 0 [set-plot-x-range 0 ticks] [set-plot-x-range 0 2]"
+PENS
+"mode" 1.0 0 -2674135 true "" "plotxy ticks precision (item 0 modes ([average-echo] of users)) 2"
+"max" 1.0 0 -14070903 true "" "plotxy ticks precision (max [average-echo] of users) 1"
+"mean" 1.0 0 -7858858 true "" "plotxy ticks precision (mean [average-echo] of users) 1"
+
+PLOT
+9
+408
+482
+528
+Global Echo Chamber Eval
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" "ifelse ticks > 0 [set-plot-x-range 0 ticks] [set-plot-x-range 0 2]"
+PENS
+"default" 1.0 0 -2674135 true "" "plotxy ticks global-echo-chamber-evaluation"
+"pen-1" 1.0 0 -5987164 true "" "plotxy ticks 0"
+
+PLOT
+10
+537
+480
+682
+Average Exposure
+ticks
+NIL
+0.0
+10.0
+0.0
+1.0
+true
+false
+"" "ifelse ticks > 0 [set-plot-x-range 0 ticks] [set-plot-x-range 0 2]"
+PENS
+"default" 1.0 0 -16777216 true "" "plotxy ticks mean [exposure] of users"
 
 @#$#@#$#@
 ## WHAT IS IT?
