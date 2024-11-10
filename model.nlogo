@@ -2,8 +2,6 @@
 __includes [ "network.nls" "users.nls" "tweets.nls" "algorithms.nls" "visualisation.nls"]
 
 globals [
-  belief-threshold         ; Temporary threshold for state transitions
-  users-in-network         ; keeps track on num of users with at leas 1 connection
   global-echo-chamber-evaluation
 ]
 
@@ -20,7 +18,6 @@ to setup
 
   create-initial-network
 
-  set users-in-network 0
   reset-ticks
 
   layout-network
@@ -286,7 +283,7 @@ CHOOSER
 algorithm-choice
 algorithm-choice
 "by-belief-global" "by-belief-local" "random" "by-popularity" "by-chronological-order"
-0
+1
 
 PLOT
 7

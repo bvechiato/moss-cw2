@@ -25,9 +25,7 @@ end
 
 ;; Create a scale-free network by adding nodes with preferential attachment
 to expand-network-to-scale-free
-  while [count users < number-of-agents] [
-    ask links [ set color one-of [red blue green yellow orange pink] ]
-    
+  while [count users < number-of-agents] [    
     ;; Decide on the number of connections based on a weighted probability
     let high-connections? (random-float 1 < 0.2) ;; 20% chance to be a high-connection node
     let max-connections (ifelse-value high-connections? [random number-of-agents - 3] [random 50]) + 2

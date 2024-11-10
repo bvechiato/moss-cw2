@@ -1,29 +1,45 @@
-;;;;;;;;;;;;;
-;;; PLOTS ;;;
-;;;;;;;;;;;;;
-to update-opinion-disstribution
+;; sum the product of neighbours' opinions
+;; low value means less clustering of opinions
+to get-global-echo-chamber-evaluation 
+  set global-echo-chamber-evaluation 0
   ask users [
-    ;; if user has any connections
-    if count link-neighbors > 0 [
-      set users-in-network users-in-network + 1
-      let echochamber 0
+    ask (turtle-set following)  [
+      set global-echo-chamber-evaluation global-echo-chamber-evaluation + sign belief * sign [belief] of myself
+    ]
+  ]
+end
 
-      ;; ask connections
-      ask link-neighbors [
-        ;; add to my echo chamber as our difference in belief
-        set echochamber echochamber + abs(belief - [belief] of myself)
-      ]
-
-      ;; set user's average
-      set average-echo echochamber / count link-neighbors
+to-report sign [x]
+  ifelse x > 0 [
+    report 1
+  ] [
+    ifelse x < 0 [
+      report -1
+    ] [
+      report 0
     ]
   ]
 end
 
 
-to plot-echochamber-distribution
-  set-current-plot "Opinion Difference Distribution"
-  clear-plot
-  set-plot-y-range 0 number-of-agents
-  histogram [average-echo] of users
+;;;;;;;;;;;;;
+;;; PLOTS ;;;
+;;;;;;;;;;;;;
+to update-opinion-distribution
+  ask users [
+    ;; if user has any followers
+    if length following > 0 [
+      let echochamber 0
+      
+      ;; loop over the users the current user is following
+      ask (turtle-set following)  [
+        ;; add to my echo chamber as the belief difference between myself and the one I'm following
+        set echochamber echochamber + abs(belief - [belief] of myself)
+      ]
+
+      ;; set user's average echo chamber influence
+      set average-echo echochamber / length following
+    ]
+  ]
 end
+

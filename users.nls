@@ -1,6 +1,3 @@
-;;;;;;;;;;;;;;;;;;;;;;;
-;;; USER PROPERTIES ;;;
-;;;;;;;;;;;;;;;;;;;;;;;
 breed [users user]
 
 users-own [
@@ -10,6 +7,8 @@ users-own [
   following              ; List of agents this agent follows
   average-echo
   seen
+  exposure
+  exposed
 ]
 
 
@@ -25,6 +24,9 @@ to initialise-users
   set belief (random-float 2 - 1)    ;; Random belief between -1 and 1
   set followers []                   ;; Start with an empty list of followers
   set following []                   ;; Start with an empty list of followers
+  set seen []
+  set exposure 0
+  set exposed false
 end
 
 
@@ -45,13 +47,8 @@ to update-belief [post-belief]
   set color rgb red-component green-component 0
 end
 
-
-;;;;;;;;;;;;;
-;;; PLOTS ;;;
-;;;;;;;;;;;;;
-to plot-belief-dist
-  set-current-plot "Belief Distribution"
-  clear-plot
-  set-plot-y-range 0 number-of-agents
-  histogram [belief] of users   ;; Plot beliefs for all users
+;; to tell lack of diversity
+;; the higher the value, the more diversity 
+to update-opinion [post-belief]
+  set exposure exposure + abs(belief - post-belief)
 end

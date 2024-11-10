@@ -6,14 +6,18 @@
 ;;             find-most-recent-tweets
 ;;             find-most-popular-tweets
 
+;;;;;;;;;;;;;;;;;;;;
+;;; BELIEF LOCAL ;;;
+;;;;;;;;;;;;;;;;;;;;
 to-report find-tweets-in-belief-range-local
   let min-belief belief - 0.5
   let max-belief belief + 0.5
   
-  ;; Gather tweets within the range of +/- 0.5 of turtle's belief
+  ;; Gather tweets within the belief range and local network, excluding seen tweets
   let tweets-in-range tweets with [
     belief >= min-belief and belief <= max-belief 
-    and member? [poster] of self [following] of myself         ;; only within local network
+    and member? [poster] of self [following] of myself
+    and not member? self [seen] of myself
   ]
   
   ;; Limit to 10 tweets if there are more than 10
@@ -24,13 +28,18 @@ to-report find-tweets-in-belief-range-local
   report tweets-in-range
 end
 
+
+;;;;;;;;;;;;;;;;;;;;;
+;;; BELIEF GLOBAL ;;;
+;;;;;;;;;;;;;;;;;;;;;
 to-report find-tweets-in-belief-range-global
   let min-belief belief - 0.5
   let max-belief belief + 0.5
   
-  ;; Gather tweets within the range of +/- 0.5 of turtle's belief
+  ;; Gather tweets within the belief range globally, excluding seen tweets
   let tweets-in-range tweets with [
     belief >= min-belief and belief <= max-belief 
+    and not member? self [seen] of myself
   ]
   
   ;; Limit to 10 tweets if there are more than 10
@@ -41,34 +50,50 @@ to-report find-tweets-in-belief-range-global
   report tweets-in-range
 end
 
+
+;;;;;;;;;;;;;;
+;;; RANDOM ;;;
+;;;;;;;;;;;;;;
 to-report find-random-tweets
-  if count tweets > 10 [
-    let random-tweets n-of 10 tweets  ;; Select 10 random tweets from the entire list
-    report random-tweets
+  ;; Select up to 10 random unseen tweets from the entire list
+  let unseen-tweets tweets with [not member? self [seen] of myself]
+  if count unseen-tweets > 10 [
+    report n-of 10 unseen-tweets
   ]
-  report tweets
+  report unseen-tweets
 end
 
+
+;;;;;;;;;;;;;;;;;;;;;
+;;; CHRONOLOGICAL ;;;
+;;;;;;;;;;;;;;;;;;;;;
 to-report find-most-recent-tweets
-  let sorted-tweets sort-on [time-posted] tweets with [member? [poster] of self [following] of myself]  ;; Sort tweets by time-posted in ascending order
-  if length sorted-tweets > 10 [
-    let most-recent-tweets n-of 10 sorted-tweets  ;; Select the 10 most recent tweets
-    report most-recent-tweets
+  ;; Sort unseen tweets by time-posted in ascending order, within the user's local network
+  let sorted-tweets sort-on [time-posted] tweets with [
+    member? [poster] of self [following] of myself 
+    and not member? self [seen] of myself
   ]
-  report tweets
-end
-
-to-report find-most-popular-tweets
-  ;; Sort tweets by a combined score: (retweets + poster's number of followers)
-  let sorted-tweets sort-on [
-    retweets + length [followers] of poster  ;; Combine retweets and poster's followers
-  ] tweets
   
-  ;; If there are more than 10 tweets, select the top 10 based on the combined score
+  ;; Select up to 10 of the most recent unseen tweets
   if length sorted-tweets > 10 [
-    let most-popular-tweets n-of 10 sorted-tweets  ;; Select the 10 most popular tweets
-    report most-popular-tweets
+    report n-of 10 sorted-tweets
   ]
-  report tweets  ;; If there are fewer than 10 tweets, return all of them
+  report sorted-tweets
 end
 
+
+;;;;;;;;;;;;;;;;;;
+;;; POPULARITY ;;;
+;;;;;;;;;;;;;;;;;;
+to-report find-most-popular-tweets
+  ;; Sort unseen tweets by combined popularity score
+  let sorted-tweets sort-on [
+    retweets + length [followers] of poster
+  ] tweets with [not member? self [seen] of myself]
+  
+  ;; Select up to 10 of the most popular unseen tweets
+  if length sorted-tweets > 10 [
+    report n-of 10 sorted-tweets
+  ]
+  report sorted-tweets
+end
