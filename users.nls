@@ -6,6 +6,7 @@ users-own [
   followers              ; List of agents following this agent
   following              ; List of agents this agent follows
   average-echo
+  local-echo-eval
   seen
   exposure
   exposed
@@ -26,6 +27,7 @@ to initialise-users
   set following []                   ;; Start with an empty list of followers
   set seen []
   set exposure 0
+  set local-echo-eval 0 
   set exposed false
 end
 
@@ -52,3 +54,28 @@ end
 to update-opinion [post-belief]
   set exposure exposure + abs(belief - post-belief)
 end
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; DETERMINE POST NUMBER ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;to-report determine-posts-viewed [n prob]
+  ; Set size and prob in R environment
+  ;;r:put "size" n
+  ;;r:put "prob" prob
+
+  ; Sample from the negative binomial using the rnegbin function from MASS
+  ;;r:eval "sample <- rnegbin(1, size = size, mu = prob)"
+
+  ; Retrieve the sample result from R
+;;report r:get "sample"
+  
+  ; Step 1: Generate rate from a normal distribution
+  ;let rate random-normal 1 0.5  ;; Mean = 40, SD = 20 (adjust as needed)
+  
+  ; Step 2: Exponentiate the rate to make it positive
+  ;let lambda exp rate
+  
+  ; Step 3: Use the built-in random-poisson to generate a Poisson value
+  ;report random-poisson lambda
+;;end

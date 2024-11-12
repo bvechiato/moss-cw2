@@ -13,6 +13,7 @@ to setup
   clear-all
   set-default-shape users "circle"
   set-default-shape tweets "triangle"
+  ;;r:eval "library(MASS)"
 
   random-seed 47822
 
@@ -35,22 +36,26 @@ to go
   tick
 
   ;; VIEW TWEETS
-  let tweets-in-range []
-  ask users [
+  let online-users n-of (count users * 0.06) users  ;; Select 6% of users
+  ask online-users [
+    ;; let n_posts determine-posts-viewed
+    let n_posts 10
+    let tweets-in-range []
+
     if algorithm-choice = "by-chronological-order" [
-      set tweets-in-range sort find-most-recent-tweets
+      set tweets-in-range sort find-most-recent-tweets n_posts
     ]
     if algorithm-choice = "random" [
-      set tweets-in-range sort find-random-tweets
+      set tweets-in-range sort find-random-tweets n_posts
     ]
     if algorithm-choice = "by-popularity" [
-      set tweets-in-range sort find-most-popular-tweets
+      set tweets-in-range sort find-most-popular-tweets n_posts
     ]
     if algorithm-choice = "by-belief-local" [
-      set tweets-in-range sort find-tweets-in-belief-range-local
+      set tweets-in-range sort find-tweets-in-belief-range-local n_posts
     ]
     if algorithm-choice = "by-belief-global" [
-      set tweets-in-range sort find-tweets-in-belief-range-global
+      set tweets-in-range sort find-tweets-in-belief-range-global n_posts
     ]
 
     if length tweets-in-range > 0 [
@@ -61,16 +66,8 @@ to go
         ;; UPDATE BELIEF
         update-belief tweet-belief
 
-        ;; UPDATE EXPOSURE
-        ;; atiqi paper only calculates this once - i'm not sure we want to keep this?
-        if exposed = false [
-          set exposed true
-          update-opinion tweet-belief
-        ]
-
-
         ;; RETWEET
-        if random-float 1 < chance-of-retweeting [
+        if random-float 1 < 0.08 [
           ask curr_tweet [ retweet ]
         ]
 
@@ -84,12 +81,11 @@ to go
   update-opinion-distribution
   get-global-echo-chamber-evaluation
 
-
   ;; TWEET
-  repeat number-of-agents [                       ;; Repeat for every user
+  foreach (list online-users) [                       ;; Repeat for every user
     if random-float 1 < chance-of-tweeting [
-      let selected-user one-of users              ;; Randomly select one user
-      create-tweet-for-user selected-user         ;; Make that turtle post a tweet
+      let selected-user one-of online-users          ;; Randomly select one user
+      create-tweet-for-user selected-user            ;; Make that turtle post a tweet
     ]
   ]
 
@@ -103,8 +99,6 @@ to go
 
   tick
 end
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 496
@@ -170,13 +164,13 @@ NIL
 SLIDER
 5
 60
-163
+191
 93
 number-of-agents
 number-of-agents
 0
-1000
-340.0
+10000
+10000.0
 1
 1
 NIL
@@ -228,10 +222,10 @@ number-of-tweets
 11
 
 PLOT
-323
-146
-483
-266
+251
+534
+484
+676
 Belief Distribution
 belief
 # of users
@@ -241,24 +235,9 @@ belief
 200.0
 false
 false
-"" ""
+"set-plot-y-range 0 number-of-agents / 2" ""
 PENS
 "default" 0.1 1 -16777216 true "" "histogram [belief] of users"
-
-SLIDER
-172
-59
-344
-92
-chance-of-retweeting
-chance-of-retweeting
-0
-1
-0.1
-0.1
-1
-NIL
-HORIZONTAL
 
 SLIDER
 201
@@ -319,7 +298,6 @@ false
 true
 "set-plot-x-range 0 2" "ifelse ticks > 0 [set-plot-x-range 0 ticks] [set-plot-x-range 0 2]"
 PENS
-"mode" 1.0 0 -2674135 true "" "plotxy ticks precision (item 0 modes ([average-echo] of users)) 2"
 "max" 1.0 0 -14070903 true "" "plotxy ticks precision (max [average-echo] of users) 1"
 "mean" 1.0 0 -7858858 true "" "plotxy ticks precision (mean [average-echo] of users) 1"
 
@@ -329,7 +307,7 @@ PLOT
 482
 528
 Global Echo Chamber Eval
-NIL
+ticks
 NIL
 0.0
 10.0
@@ -340,25 +318,25 @@ false
 "" "ifelse ticks > 0 [set-plot-x-range 0 ticks] [set-plot-x-range 0 2]"
 PENS
 "default" 1.0 0 -2674135 true "" "plotxy ticks global-echo-chamber-evaluation"
-"pen-1" 1.0 0 -5987164 true "" "plotxy ticks 0"
+"pen-1" 1.0 0 -5987164 true "" ""
 
 PLOT
-10
-537
-480
-682
-Average Exposure
-ticks
+9
+535
+244
+677
+Global Echo Chamber Distribution
 NIL
-0.0
-10.0
-0.0
+NIL
+-1.0
 1.0
-true
+-1.0
+1.0
 false
-"" "ifelse ticks > 0 [set-plot-x-range 0 ticks] [set-plot-x-range 0 2]"
+false
+"set-plot-y-range 0 number-of-agents / 2" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plotxy ticks mean [exposure] of users"
+"default" 0.2 1 -16777216 true "" "histogram [local-echo-eval] of users"
 
 @#$#@#$#@
 ## WHAT IS IT?

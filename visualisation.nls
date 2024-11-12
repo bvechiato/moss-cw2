@@ -3,9 +3,25 @@
 to get-global-echo-chamber-evaluation 
   set global-echo-chamber-evaluation 0
   ask users [
-    ask (turtle-set following)  [
-      set global-echo-chamber-evaluation global-echo-chamber-evaluation + sign belief * sign [belief] of myself
+    let local-eval 0
+    
+    ;; ask following to calculate belief sign stuff
+    ask (turtle-set following)  [ 
+      let curr (sign belief * sign [belief] of myself)
+      set local-eval local-eval + curr  
     ]
+    
+    ifelse length following > 0 [
+      ;; global += global + this user's local eval divided by how many people they follow
+      set global-echo-chamber-evaluation global-echo-chamber-evaluation + (local-eval / length following)
+      
+      ;; local += what they had
+      set local-echo-eval local-eval / length following
+    ] [
+      set global-echo-chamber-evaluation global-echo-chamber-evaluation + local-eval
+      set local-echo-eval local-eval
+    ]
+    
   ]
 end
 

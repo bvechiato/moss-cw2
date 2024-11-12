@@ -23,7 +23,6 @@ to create-tweet-for-user [who-posted]
     set color white  ;; Set the color for visual representation
     set size 1
     set time-posted ticks
-    move-to who-posted  ;; Position the tweet where the poster (turtle) is
   ]
 end
 
