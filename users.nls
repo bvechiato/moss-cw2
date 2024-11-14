@@ -59,23 +59,13 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; DETERMINE POST NUMBER ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;to-report determine-posts-viewed [n prob]
-  ; Set size and prob in R environment
-  ;;r:put "size" n
-  ;;r:put "prob" prob
-
-  ; Sample from the negative binomial using the rnegbin function from MASS
-  ;;r:eval "sample <- rnegbin(1, size = size, mu = prob)"
-
-  ; Retrieve the sample result from R
-;;report r:get "sample"
-  
+to-report determine-posts-viewed 
   ; Step 1: Generate rate from a normal distribution
-  ;let rate random-normal 1 0.5  ;; Mean = 40, SD = 20 (adjust as needed)
+  let rate random-normal 1 0.5  ;; Mean = 40, SD = 20 (adjust as needed)
   
   ; Step 2: Exponentiate the rate to make it positive
-  ;let lambda exp rate
+  let lambda exp rate
   
   ; Step 3: Use the built-in random-poisson to generate a Poisson value
-  ;report random-poisson lambda
-;;end
+  report random-poisson lambda
+end

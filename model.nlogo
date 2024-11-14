@@ -1,4 +1,3 @@
-;; include the code for network creation and layout
 __includes [ "network.nls" "users.nls" "tweets.nls" "algorithms.nls" "visualisation.nls"]
 
 globals [
@@ -13,8 +12,6 @@ to setup
   clear-all
   set-default-shape users "circle"
   set-default-shape tweets "triangle"
-  ;;r:eval "library(MASS)"
-
   random-seed 47822
 
   create-initial-network
@@ -36,26 +33,26 @@ to go
   tick
 
   ;; VIEW TWEETS
-  let online-users n-of (count users * 0.06) users  ;; Select 6% of users
+  let online-users n-of (count users * 0.4 ) users  ;; Select 40% of users
   ask online-users [
-    ;; let n_posts determine-posts-viewed
-    let n_posts 10
+    ;;let n_to_view determine-posts-viewed
+    let n_to_view 10
     let tweets-in-range []
 
     if algorithm-choice = "by-chronological-order" [
-      set tweets-in-range sort find-most-recent-tweets n_posts
+      set tweets-in-range sort find-most-recent-tweets n_to_view
     ]
     if algorithm-choice = "random" [
-      set tweets-in-range sort find-random-tweets n_posts
+      set tweets-in-range sort find-random-tweets n_to_view
     ]
     if algorithm-choice = "by-popularity" [
-      set tweets-in-range sort find-most-popular-tweets n_posts
+      set tweets-in-range sort find-most-popular-tweets n_to_view
     ]
     if algorithm-choice = "by-belief-local" [
-      set tweets-in-range sort find-tweets-in-belief-range-local n_posts
+      set tweets-in-range sort find-tweets-in-belief-range-local n_to_view
     ]
     if algorithm-choice = "by-belief-global" [
-      set tweets-in-range sort find-tweets-in-belief-range-global n_posts
+      set tweets-in-range sort find-tweets-in-belief-range-global n_to_view
     ]
 
     if length tweets-in-range > 0 [
@@ -82,12 +79,13 @@ to go
   get-global-echo-chamber-evaluation
 
   ;; TWEET
-  foreach (list online-users) [                       ;; Repeat for every user
+  repeat count online-users [                       ;; Repeat for every user
     if random-float 1 < chance-of-tweeting [
-      let selected-user one-of online-users          ;; Randomly select one user
-      create-tweet-for-user selected-user            ;; Make that turtle post a tweet
+      let selected-user one-of online-users         ;; Randomly select one user
+      create-tweet-for-user selected-user           ;; Make that turtle post a tweet
     ]
   ]
+
 
 
   ;; REMOVE OLD TWEETS
@@ -170,7 +168,7 @@ number-of-agents
 number-of-agents
 0
 10000
-10000.0
+936.0
 1
 1
 NIL
@@ -248,7 +246,7 @@ chance-of-tweeting
 chance-of-tweeting
 0
 1
-0.5
+1.0
 0.1
 1
 NIL
