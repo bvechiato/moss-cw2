@@ -1,3 +1,4 @@
+extensions [ py ]
 __includes [ "network.nls" "users.nls" "tweets.nls" "algorithms.nls" "visualisation.nls"]
 
 globals [
@@ -14,6 +15,7 @@ to setup
   set-default-shape tweets "triangle"
   random-seed 47822
 
+  setup-python
   create-initial-network
 
   reset-ticks
@@ -35,25 +37,8 @@ to go
   ;; VIEW TWEETS
   let online-users n-of (count users * 0.4 ) users  ;; Select 40% of users
   ask online-users [
-    ;;let n_to_view determine-posts-viewed
-    let n_to_view 10
-    let tweets-in-range []
-
-    if algorithm-choice = "by-chronological-order" [
-      set tweets-in-range sort find-most-recent-tweets n_to_view
-    ]
-    if algorithm-choice = "random" [
-      set tweets-in-range sort find-random-tweets n_to_view
-    ]
-    if algorithm-choice = "by-popularity" [
-      set tweets-in-range sort find-most-popular-tweets n_to_view
-    ]
-    if algorithm-choice = "by-belief-local" [
-      set tweets-in-range sort find-tweets-in-belief-range-local n_to_view
-    ]
-    if algorithm-choice = "by-belief-global" [
-      set tweets-in-range sort find-tweets-in-belief-range-global n_to_view
-    ]
+    let n_to_view determine-posts-viewed
+    let tweets-to-view []
 
     if length tweets-in-range > 0 [
       foreach tweets-in-range [
@@ -72,6 +57,31 @@ to go
         set seen lput curr_tweet seen
       ]
     ]
+
+
+    ;; Retrieve tweets based on weighted random selection
+    repeat n_to_view [
+      ;; Step 1: Sample x from a uniform distribution between 0 and total-weight
+      let x random-float 1
+
+      ;; Step 2: Determine which category the post falls into based on x
+      if x < belief-local [
+        set tweets-to-view lput find-tweets-in-belief-range-local 1
+      ]
+
+      if belief-local <= x < belief-local + chronological [
+        set tweets-to-view lput find-most-recent-tweets 1
+      ]
+
+      if belief-local + chronological < x <= 1 - random-posts [
+        set tweets-to-view lput find-most-popular-tweets 1
+      ]
+
+      if 1 - random-posts < x [
+        set tweets-to-view lput find-random-tweets 1
+      ]
+    ]
+
   ]
 
   ;; update echochamber tracking
@@ -87,7 +97,6 @@ to go
   ]
 
 
-
   ;; REMOVE OLD TWEETS
   while [count tweets > 2000] [
     ;; Find and delete the oldest tweet based on the `time-posted` variable
@@ -97,6 +106,31 @@ to go
 
   tick
 end
+
+
+to-report combine-lists [list1 list2 list3 list4 list5]
+  report (sentence list1 (sentence list2 (sentence list3 (sentence list4 list5))))
+end
+
+to setup-python
+  py:setup py:python
+end
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; DETERMINE POST NUMBER ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+to-report determine-posts-viewed
+  py:run "import numpy as np"
+  py:run "num_posts = np.random.negative_binomial(40, 0.5)"
+  report py:runresult "num_posts"
+end
+
+
+
+
+
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 496
@@ -167,18 +201,18 @@ SLIDER
 number-of-agents
 number-of-agents
 0
-10000
-936.0
-1
+1000
+500.0
+100
 1
 NIL
 HORIZONTAL
 
 SLIDER
-5
-105
-191
-138
+248
+14
+449
+47
 update-opinion-threshold
 update-opinion-threshold
 0
@@ -209,10 +243,10 @@ PENS
 "following" 10.0 0 -7500403 true "" ""
 
 MONITOR
-361
-39
-489
-84
+198
+89
+312
+134
 NIL
 number-of-tweets
 0
@@ -238,10 +272,10 @@ PENS
 "default" 0.1 1 -16777216 true "" "histogram [belief] of users"
 
 SLIDER
-201
-104
-355
-137
+4
+101
+190
+134
 chance-of-tweeting
 chance-of-tweeting
 0
@@ -251,16 +285,6 @@ chance-of-tweeting
 1
 NIL
 HORIZONTAL
-
-CHOOSER
-361
-93
-491
-138
-algorithm-choice
-algorithm-choice
-"by-belief-global" "by-belief-local" "random" "by-popularity" "by-chronological-order"
-1
 
 PLOT
 7
@@ -335,6 +359,91 @@ false
 "set-plot-y-range 0 number-of-agents / 2" ""
 PENS
 "default" 0.2 1 -16777216 true "" "histogram [local-echo-eval] of users"
+
+SLIDER
+320
+234
+484
+267
+belief-local
+belief-local
+0
+1
+0.5
+0.25
+1
+NIL
+HORIZONTAL
+
+SLIDER
+320
+196
+485
+229
+belief-global
+belief-global
+0
+1
+0.0
+0.25
+1
+NIL
+HORIZONTAL
+
+SLIDER
+320
+158
+484
+191
+random-posts
+random-posts
+0
+1
+0.25
+0.25
+1
+NIL
+HORIZONTAL
+
+SLIDER
+321
+74
+484
+107
+popularity
+popularity
+0
+1
+1.0
+0.25
+1
+NIL
+HORIZONTAL
+
+SLIDER
+319
+117
+482
+150
+chronological
+chronological
+0
+1
+0.25
+0.25
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+321
+55
+536
+83
+Algorithms, should add up to 1
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

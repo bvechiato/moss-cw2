@@ -1,3 +1,4 @@
+extensions [py]
 breed [users user]
 
 users-own [
@@ -59,13 +60,10 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; DETERMINE POST NUMBER ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-to-report determine-posts-viewed 
-  ; Step 1: Generate rate from a normal distribution
-  let rate random-normal 1 0.5  ;; Mean = 40, SD = 20 (adjust as needed)
+to-report determine-posts-viewed
+  ; Directly use the Negative Binomial distribution for overdispersion
+  let num_posts py:eval "import numpy as np; np.random.negative_binomial(10, 0.5)" ;; Adjust parameters if needed
   
-  ; Step 2: Exponentiate the rate to make it positive
-  let lambda exp rate
-  
-  ; Step 3: Use the built-in random-poisson to generate a Poisson value
-  report random-poisson lambda
+  ; Report the number of posts viewed
+  report num_posts
 end
