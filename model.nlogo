@@ -34,14 +34,61 @@ end
 to go
   tick
 
-  ;; VIEW TWEETS
   let online-users n-of (count users * 0.4 ) users  ;; Select 40% of users
   ask online-users [
+
+    ;; VIEW TWEETS
     let n_to_view determine-posts-viewed
     let tweets-to-view []
 
-    if length tweets-in-range > 0 [
-      foreach tweets-in-range [
+    ;; Retrieve tweets based on weighted random selection
+    repeat n_to_view [
+      let x random-float 1
+
+      ;; Step 2: Determine which category the post falls into based on x
+      if x < belief-local [
+        ;; Tweets from local belief range
+        let local-tweet find-tweet-in-belief-range-local
+        if local-tweet != nobody [
+          set tweets-to-view lput local-tweet tweets-to-view
+        ]
+      ]
+
+      if belief-local <= x and x < belief-local + belief-global [
+        ;; Tweets from global belief range
+        let global-tweet find-tweet-in-belief-range-global
+        if global-tweet != nobody [
+          set tweets-to-view lput global-tweet tweets-to-view
+        ]
+      ]
+
+      if belief-local + belief-global <= x and x < belief-local + belief-global + chronological [
+        ;; Tweets based on chronological order
+        let local-tweet find-most-recent-tweet
+        if local-tweet != nobody [
+          set tweets-to-view lput local-tweet tweets-to-view
+        ]
+      ]
+
+      if belief-local + belief-global + chronological <= x and x <= 1 - random-posts [
+        ;; Tweets based on popularity
+        let local-tweet find-most-popular-tweet
+        if local-tweet != nobody [
+          set tweets-to-view lput local-tweet tweets-to-view
+        ]
+      ]
+
+      if 1 - random-posts < x [
+        ;; Random tweets
+        let local-tweet find-random-tweet
+        if local-tweet != nobody [
+          set tweets-to-view lput local-tweet tweets-to-view
+        ]
+      ]
+    ]
+
+    if length tweets-to-view > 0 [
+      foreach tweets-to-view [
         curr_tweet ->
         let tweet-belief [belief] of curr_tweet
 
@@ -55,30 +102,6 @@ to go
 
         ;; ADD TO SEEN LIST
         set seen lput curr_tweet seen
-      ]
-    ]
-
-
-    ;; Retrieve tweets based on weighted random selection
-    repeat n_to_view [
-      ;; Step 1: Sample x from a uniform distribution between 0 and total-weight
-      let x random-float 1
-
-      ;; Step 2: Determine which category the post falls into based on x
-      if x < belief-local [
-        set tweets-to-view lput find-tweets-in-belief-range-local 1
-      ]
-
-      if belief-local <= x < belief-local + chronological [
-        set tweets-to-view lput find-most-recent-tweets 1
-      ]
-
-      if belief-local + chronological < x <= 1 - random-posts [
-        set tweets-to-view lput find-most-popular-tweets 1
-      ]
-
-      if 1 - random-posts < x [
-        set tweets-to-view lput find-random-tweets 1
       ]
     ]
 
@@ -105,11 +128,6 @@ to go
   ]
 
   tick
-end
-
-
-to-report combine-lists [list1 list2 list3 list4 list5]
-  report (sentence list1 (sentence list2 (sentence list3 (sentence list4 list5))))
 end
 
 to setup-python
@@ -384,7 +402,7 @@ belief-global
 belief-global
 0
 1
-0.0
+0.5
 0.25
 1
 NIL
@@ -399,7 +417,7 @@ random-posts
 random-posts
 0
 1
-0.25
+0.0
 0.25
 1
 NIL
@@ -414,7 +432,7 @@ popularity
 popularity
 0
 1
-1.0
+0.0
 0.25
 1
 NIL
@@ -429,7 +447,7 @@ chronological
 chronological
 0
 1
-0.25
+0.0
 0.25
 1
 NIL
