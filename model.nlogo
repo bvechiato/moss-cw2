@@ -3,6 +3,8 @@ __includes [ "network.nls" "users.nls" "tweets.nls" "algorithms.nls" "visualisat
 
 globals [
   global-echo-chamber-evaluation
+  belief-purity-average
+  std-belief-purity
 ]
 
 
@@ -11,6 +13,7 @@ globals [
 ;;;;;;;;;;;;;
 to setup
   clear-all
+
   set-default-shape users "circle"
   set-default-shape tweets "triangle"
   random-seed 47822
@@ -18,10 +21,15 @@ to setup
   setup-python
   create-initial-network
 
+  no-display
+
   reset-ticks
 
   layout-network
   plot-followers-following
+
+  set belief-purity-average mean [belief-purity] of users
+  set std-belief-purity standard-deviation [belief-purity] of users
 
   update-opinion-distribution
   get-global-echo-chamber-evaluation
@@ -34,8 +42,9 @@ end
 to go
   tick
 
-  let online-users n-of (count users * 0.4 ) users  ;; Select 40% of users
+  let online-users n-of (count users * 0.42 ) users  ;; Select 40% of users
   ask online-users [
+    let belief-purity-sum 0
 
     ;; VIEW TWEETS
     let n_to_view determine-posts-viewed
@@ -70,7 +79,7 @@ to go
         ]
       ]
 
-      if belief-local + belief-global + chronological <= x and x <= 1 - random-posts [
+      if belief-local + belief-global + chronological <= x and x <= 1 - popularity - random-posts [
         ;; Tweets based on popularity
         let local-tweet find-most-popular-tweet
         if local-tweet != nobody [
@@ -78,7 +87,7 @@ to go
         ]
       ]
 
-      if 1 - random-posts < x [
+      if 1 - popularity - random-posts < x [
         ;; Random tweets
         let local-tweet find-random-tweet
         if local-tweet != nobody [
@@ -97,23 +106,27 @@ to go
 
         ;; RETWEET
         if random-float 1 < 0.08 [
-          ask curr_tweet [ retweet ]
+          let curr-user self
+          ask curr_tweet [ retweet curr-user ]
         ]
 
         ;; ADD TO SEEN LIST
         set seen lput curr_tweet seen
+
+        set belief-purity-sum belief-purity-sum + abs(belief - tweet-belief)
       ]
     ]
 
+    set belief-purity 1 - (belief-purity-sum / (2 * n_to_view))
   ]
 
   ;; update echochamber tracking
-  update-opinion-distribution
+  ;; update-opinion-distribution
   get-global-echo-chamber-evaluation
 
   ;; TWEET
   repeat count online-users [                       ;; Repeat for every user
-    if random-float 1 < chance-of-tweeting [
+    if random-float 1 < 0.5 [
       let selected-user one-of online-users         ;; Randomly select one user
       create-tweet-for-user selected-user           ;; Make that turtle post a tweet
     ]
@@ -121,18 +134,24 @@ to go
 
 
   ;; REMOVE OLD TWEETS
-  while [count tweets > 2000] [
+  while [count tweets > 15000] [
     ;; Find and delete the oldest tweet based on the `time-posted` variable
     let oldest-tweet min-one-of tweets [time-posted]
     ask oldest-tweet [ die ]
   ]
 
+  set belief-purity-average mean [belief-purity] of users
+  set std-belief-purity standard-deviation [belief-purity] of users
+
   tick
 end
 
+
 to setup-python
   py:setup py:python
+  py:run "from scipy.stats import beta"
 end
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; DETERMINE POST NUMBER ;;;
@@ -144,10 +163,71 @@ to-report determine-posts-viewed
 end
 
 
+to run-simulation
+  set belief-local 1
+  set belief-global 0
+  set chronological 0
+  set random-posts 0
+  set popularity 0
+  set number-of-agents 1000
+
+  setup
+  repeat 20 [ go ]
+  export-user-opinion-sd 20
+  export-user-belief 20
+
+  repeat 20 [ go ]
+  export-user-opinion-sd 40
+  export-user-belief 40
+
+  repeat 20 [ go ]
+  export-user-opinion-sd 60
+  export-user-belief 60
+
+  repeat 20 [ go ]
+  export-user-opinion-sd 80
+  export-user-belief 80
+
+  repeat 20 [ go ]
+  export-user-opinion-sd 100
+  export-user-belief 100
+
+  export-plot "Belief Purity" "/Users/bea/Downloads/moss-cw2/results/belief-purity.csv"
+  export-plot "Global Echo Chamber Eval" "/Users/bea/Downloads/moss-cw2/results/gec.csv"
+  export-interface "/Users/bea/Downloads/moss-cw2/results/interface.png"
+end
 
 
+to export-user-opinion-sd [at-tick]
+  let file-name (word "/Users/bea/Downloads/moss-cw2/results/opinion-sd-" at-tick ".txt")
 
+  file-open file-name
 
+  ;; Write headers
+  file-print "turtle-id,opinion-sd"
+
+  ;; Loop over each turtle and write their ID and energy to the file
+  ask users [
+    file-print (word who "," opinion-sd)
+  ]
+
+  file-close
+end
+
+to export-user-belief [at-tick]
+  let file-name (word "/Users/bea/Downloads/moss-cw2/results/belief-" at-tick ".txt")
+  file-open file-name
+
+  ;; Write headers
+  file-print "turtle-id,belief"
+
+  ;; Loop over each turtle and write their ID and energy to the file
+  ask users [
+    file-print (word who "," belief)
+  ]
+
+  file-close
+end
 
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -220,23 +300,8 @@ number-of-agents
 number-of-agents
 0
 1000
-500.0
+1000.0
 100
-1
-NIL
-HORIZONTAL
-
-SLIDER
-248
-14
-449
-47
-update-opinion-threshold
-update-opinion-threshold
-0
-1
-0.2
-0.1
 1
 NIL
 HORIZONTAL
@@ -289,29 +354,14 @@ false
 PENS
 "default" 0.1 1 -16777216 true "" "histogram [belief] of users"
 
-SLIDER
-4
-101
-190
-134
-chance-of-tweeting
-chance-of-tweeting
-0
-1
-1.0
-0.1
-1
-NIL
-HORIZONTAL
-
 PLOT
 7
 277
 233
 397
-Opinion Difference Distribution
+SD of opinion difference
 opinion difference
-# of users
+NIL
 0.0
 2.0
 0.0
@@ -320,7 +370,7 @@ false
 false
 "set-plot-y-range 0 number-of-agents / 2" ""
 PENS
-"pen-0" 0.1 1 -16777216 true "" "histogram [average-echo] of users"
+"pen-0" 0.1 1 -16777216 true "" "histogram [opinion-sd] of users"
 
 PLOT
 240
@@ -387,7 +437,7 @@ belief-local
 belief-local
 0
 1
-0.5
+1.0
 0.25
 1
 NIL
@@ -402,7 +452,7 @@ belief-global
 belief-global
 0
 1
-0.5
+0.0
 0.25
 1
 NIL
@@ -462,6 +512,26 @@ Algorithms, should add up to 1
 11
 0.0
 1
+
+PLOT
+13
+691
+213
+841
+Belief Purity
+NIL
+NIL
+0.0
+10.0
+0.0
+1.5
+false
+false
+"ifelse ticks > 0 [set-plot-x-range 0 ticks] [set-plot-x-range 0 2]" "ifelse ticks > 0 [set-plot-x-range 0 ticks] [set-plot-x-range 0 2]"
+PENS
+"default" 1.0 0 -16777216 true "" "plotxy ticks belief-purity-average"
+"pen-1" 1.0 0 -5298144 true "" "plotxy ticks belief-purity-average + std-belief-purity"
+"pen-2" 1.0 0 -13345367 true "" "plotxy ticks belief-purity-average - std-belief-purity"
 
 @#$#@#$#@
 ## WHAT IS IT?

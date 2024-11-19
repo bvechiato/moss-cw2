@@ -1,16 +1,15 @@
-extensions [py]
 breed [users user]
 
 users-own [
   belief                 ; Belief level of each agent (-1 to +1)
-  state                  ; Current state: "susceptible", "believe", etc.
   followers              ; List of agents following this agent
   following              ; List of agents this agent follows
   average-echo
   local-echo-eval
   seen
-  exposure
-  exposed
+  susceptibility-threshold
+  belief-purity
+  opinion-sd
 ]
 
 
@@ -27,43 +26,33 @@ to initialise-users
   set followers []                   ;; Start with an empty list of followers
   set following []                   ;; Start with an empty list of followers
   set seen []
-  set exposure 0
   set local-echo-eval 0 
-  set exposed false
+  set susceptibility-threshold sample-beta
 end
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; BELIEF UPDATING ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;
-to-report deffuant-beliefs [current-belief post-belief]
-    ifelse abs (post-belief - current-belief) < update-opinion-threshold
+to-report deffuant-beliefs [current-belief post-belief susceptibility]
+    ifelse abs (post-belief - current-belief) < susceptibility
     [report (current-belief + 0.05 * (post-belief - current-belief))]
     [report current-belief]
 end
 
 to update-belief [post-belief]
-  set belief deffuant-beliefs belief post-belief
+  set belief deffuant-beliefs belief post-belief susceptibility-threshold
   
   let red-component (1 - belief) * 255
   let green-component (1 + belief) * 255
   set color rgb red-component green-component 0
 end
 
-;; to tell lack of diversity
-;; the higher the value, the more diversity 
-to update-opinion [post-belief]
-  set exposure exposure + abs(belief - post-belief)
-end
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; DETERMINE POST NUMBER ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-to-report determine-posts-viewed
-  ; Directly use the Negative Binomial distribution for overdispersion
-  let num_posts py:eval "import numpy as np; np.random.negative_binomial(10, 0.5)" ;; Adjust parameters if needed
+to-report sample-beta
+  py:set "alpha" 1.7
+  py:set "beta_param" 6.0
+  py:run "mapped_sample = 2 * beta.rvs(alpha, beta_param)"
   
-  ; Report the number of posts viewed
-  report num_posts
+  report py:runresult "mapped_sample"
 end

@@ -26,8 +26,27 @@ to create-tweet-for-user [who-posted]
   ]
 end
 
-to retweet 
+to retweet-for-user [selected-user curr-tweet]
+  create-tweets 1 [
+    set belief [belief] of curr-tweet
+    set poster selected-user
+    set retweets 0
+    set color white  ;; Set the color for visual representation
+    set size 1
+    set time-posted ticks
+  ]
+end
+
+to retweet [by-who]
   set retweets retweets + 1
+  hatch 1 [
+    set belief [belief] of self
+    set poster by-who
+    set retweets 0
+    set color white  ;; Set the color for visual representation
+    set size 1
+    set time-posted ticks
+  ]
 end
 
 to-report number-of-tweets
