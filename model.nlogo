@@ -40,8 +40,6 @@ end
 ;;; GO ;;;
 ;;;;;;;;;;
 to go
-  tick
-
   let online-users n-of (count users * 0.42 ) users  ;; Select 40% of users
   ask online-users [
     let belief-purity-sum 0
@@ -79,7 +77,7 @@ to go
         ]
       ]
 
-      if belief-local + belief-global + chronological <= x and x <= 1 - popularity - random-posts [
+      if belief-local + belief-global + chronological <= x and x <= 1 - popularity - randomised [
         ;; Tweets based on popularity
         let local-tweet find-most-popular-tweet
         if local-tweet != nobody [
@@ -87,7 +85,7 @@ to go
         ]
       ]
 
-      if 1 - popularity - random-posts < x [
+      if 1 - popularity - randomised < x [
         ;; Random tweets
         let local-tweet find-random-tweet
         if local-tweet != nobody [
@@ -163,43 +161,57 @@ to-report determine-posts-viewed
 end
 
 
-to run-simulation
-  set belief-local 1
-  set belief-global 0
-  set chronological 0
-  set random-posts 0
-  set popularity 0
-  set number-of-agents 1000
-
-  setup
-  repeat 20 [ go ]
-  export-user-opinion-sd 20
-  export-user-belief 20
-
-  repeat 20 [ go ]
-  export-user-opinion-sd 40
-  export-user-belief 40
-
-  repeat 20 [ go ]
-  export-user-opinion-sd 60
-  export-user-belief 60
-
-  repeat 20 [ go ]
-  export-user-opinion-sd 80
-  export-user-belief 80
-
-  repeat 20 [ go ]
-  export-user-opinion-sd 100
-  export-user-belief 100
-
-  export-plot "Belief Purity" "/Users/bea/Downloads/moss-cw2/results/belief-purity.csv"
-  export-plot "Global Echo Chamber Eval" "/Users/bea/Downloads/moss-cw2/results/gec.csv"
-  export-interface "/Users/bea/Downloads/moss-cw2/results/interface.png"
+to run-simulations
+  run-simulation 1 0 0 0 0 "belief-local-1"
+  run-simulation 0 1 0 0 0 "belief-global-1"
+  run-simulation 0 0 1 0 0 "chronological-1"
+  run-simulation 0 0 0 1 0 "randomised-1"
+  run-simulation 0 0 0 0 1 "popularity-1"
 end
 
 
-to export-user-opinion-sd [at-tick]
-  let file-name (word "/Users/bea/Downloads/moss-cw2/results/opinion-sd-" at-tick ".txt")
+to run-simulation [belief-local-value belief-global-value chronological-value randomised-value popularity-value algo-name]
+  set belief-local belief-local-value
+  set belief-global belief-global-value
+  set chronological chronological-value
+  set randomised randomised-value
+  set popularity popularity-value
+  set number-of-agents 500
+
+  setup
+
+  ;; Turn off graphics (hide turtles and disable plots)
+  ask turtles [
+    hide-turtle
+  ]
+
+  ask links [
+    hide-link
+  ]
+
+
+  ;; Loop through different ticks (20, 40, 60, 80, 100)
+  foreach [20 40 60 80 100] [
+    tick-value ->
+    repeat 20 [
+      go
+    ]
+
+    if ticks = tick-value [
+      export-user-opinion-sd tick-value algo-name
+      export-user-belief tick-value algo-name
+    ]
+  ]
+
+  ;; Export final plots and interface
+  export-plot "Belief Purity" (word "/Users/bea/Downloads/moss-cw2/results/" algo-name "/belief-purity.csv")
+  export-plot "Global Echo Chamber Eval" (word "/Users/bea/Downloads/moss-cw2/results/" algo-name "/gec.csv")
+  export-interface (word "/Users/bea/Downloads/moss-cw2/results/" algo-name "/interface.png")
+end
+
+
+to export-user-opinion-sd [at-tick algo-name]
+  let file-name (word "/Users/bea/Downloads/moss-cw2/results/" algo-name "/opinion-sd-" at-tick ".csv")
 
   file-open file-name
 
@@ -214,8 +226,8 @@ to export-user-opinion-sd [at-tick]
   file-close
 end
 
-to export-user-belief [at-tick]
-  let file-name (word "/Users/bea/Downloads/moss-cw2/results/belief-" at-tick ".txt")
+to export-user-belief [at-tick algo-name]
+  let file-name (word "/Users/bea/Downloads/moss-cw2/results/" algo-name "/belief-" at-tick ".csv")
   file-open file-name
 
   ;; Write headers
@@ -228,7 +240,6 @@ to export-user-belief [at-tick]
 
   file-close
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 496
@@ -300,7 +311,7 @@ number-of-agents
 number-of-agents
 0
 1000
-1000.0
+500.0
 100
 1
 NIL
@@ -463,8 +474,8 @@ SLIDER
 158
 484
 191
-random-posts
-random-posts
+randomised
+randomised
 0
 1
 0.0

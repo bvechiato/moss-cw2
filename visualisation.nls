@@ -46,16 +46,21 @@ to update-opinion-distribution
     ;; if user has any followers
     if length following > 0 [
       let echochamber 0
+      let SDopinion 0
+      let opinionDiff 0
       
       ;; loop over the users the current user is following
-      ask (turtle-set following)  [
+      ask (turtle-set following) [
         ;; add to my echo chamber as the belief difference between myself and the one I'm following
-        set echochamber echochamber + abs(belief - [belief] of myself)
+        set opinionDiff abs(belief - [belief] of myself)
+        ;;set echochamber echochamber + abs(belief - [belief] of myself)
+        set echochamber echochamber + opinionDiff
+        set SDopinion SDopinion + (opinionDiff * opinionDiff)
       ]
-
+      
       ;; set user's average echo chamber influence
       set average-echo echochamber / length following
+      set opinion-sd SDopinion / length following
     ]
   ]
 end
-
