@@ -132,7 +132,7 @@ to go
 
 
   ;; REMOVE OLD TWEETS
-  while [count tweets > 15000] [
+  while [count tweets > 7500] [
     ;; Find and delete the oldest tweet based on the `time-posted` variable
     let oldest-tweet min-one-of tweets [time-posted]
     ask oldest-tweet [ die ]
@@ -176,7 +176,7 @@ to run-simulation [belief-local-value belief-global-value chronological-value ra
   set chronological chronological-value
   set randomised randomised-value
   set popularity popularity-value
-  set number-of-agents 500
+  set number-of-agents 1000
 
   setup
 
@@ -191,9 +191,9 @@ to run-simulation [belief-local-value belief-global-value chronological-value ra
 
 
   ;; Loop through different ticks (20, 40, 60, 80, 100)
-  foreach [20 40 60 80 100] [
+  foreach [10 20 30 40 50] [
     tick-value ->
-    repeat 20 [
+    repeat 10 [
       go
     ]
 
@@ -266,7 +266,7 @@ GRAPHICS-WINDOW
 1
 1
 ticks
-60.0
+15.0
 
 BUTTON
 9
@@ -311,7 +311,7 @@ number-of-agents
 number-of-agents
 0
 1000
-500.0
+1000.0
 100
 1
 NIL
@@ -448,7 +448,7 @@ belief-local
 belief-local
 0
 1
-1.0
+0.0
 0.25
 1
 NIL
@@ -478,7 +478,7 @@ randomised
 randomised
 0
 1
-0.0
+1.0
 0.25
 1
 NIL
@@ -936,6 +936,13 @@ setup repeat 300 [ go ]
 repeat 100 [ layout ]
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="run-simulations" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup run-simulations</setup>
+    <go>go</go>
+    <metric>count turtles</metric>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
