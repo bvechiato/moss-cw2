@@ -16,7 +16,7 @@ to setup
 
   set-default-shape users "circle"
   set-default-shape tweets "triangle"
-  random-seed 47822
+  random-seed seed
 
   setup-python
   create-initial-network
@@ -176,7 +176,9 @@ to run-simulation [belief-local-value belief-global-value chronological-value ra
   set chronological chronological-value
   set randomised randomised-value
   set popularity popularity-value
-  set number-of-agents 1000
+  set number-of-agents 500
+
+  set seed 47822
 
   setup
 
@@ -198,20 +200,20 @@ to run-simulation [belief-local-value belief-global-value chronological-value ra
     ]
 
     if ticks = tick-value [
-      export-user-opinion-sd tick-value algo-name
-      export-user-belief tick-value algo-name
+      export-user-opinion-sd tick-value algo-name seed
+      export-user-belief tick-value algo-name seed
     ]
   ]
 
   ;; Export final plots and interface
-  export-plot "Belief Purity" (word "/Users/bea/Downloads/moss-cw2/results/" algo-name "/belief-purity.csv")
-  export-plot "Global Echo Chamber Eval" (word "/Users/bea/Downloads/moss-cw2/results/" algo-name "/gec.csv")
-  export-interface (word "/Users/bea/Downloads/moss-cw2/results/" algo-name "/interface.png")
+  export-plot "Belief Purity" (word "/Users/bea/Downloads/moss-cw2/results/" seed "/" algo-name "/belief-purity.csv")
+  export-plot "Global Echo Chamber Eval" (word "/Users/bea/Downloads/moss-cw2/results/" seed "/" algo-name "/gec.csv")
+  export-interface (word "/Users/bea/Downloads/moss-cw2/results/" seed "/" algo-name "/interface.png")
 end
 
 
-to export-user-opinion-sd [at-tick algo-name]
-  let file-name (word "/Users/bea/Downloads/moss-cw2/results/" algo-name "/opinion-sd-" at-tick ".csv")
+to export-user-opinion-sd [at-tick algo-name set-seed]
+  let file-name (word "/Users/bea/Downloads/moss-cw2/results/" set-seed "/" algo-name "/opinion-sd-" at-tick ".csv")
 
   file-open file-name
 
@@ -226,8 +228,8 @@ to export-user-opinion-sd [at-tick algo-name]
   file-close
 end
 
-to export-user-belief [at-tick algo-name]
-  let file-name (word "/Users/bea/Downloads/moss-cw2/results/" algo-name "/belief-" at-tick ".csv")
+to export-user-belief [at-tick algo-name set-seed]
+  let file-name (word "/Users/bea/Downloads/moss-cw2/results/" set-seed "/" algo-name "/belief-" at-tick ".csv")
   file-open file-name
 
   ;; Write headers
@@ -337,10 +339,10 @@ PENS
 "following" 10.0 0 -7500403 true "" ""
 
 MONITOR
-198
-89
-312
-134
+6
+100
+120
+145
 NIL
 number-of-tweets
 0
@@ -543,6 +545,17 @@ PENS
 "default" 1.0 0 -16777216 true "" "plotxy ticks belief-purity-average"
 "pen-1" 1.0 0 -5298144 true "" "plotxy ticks belief-purity-average + std-belief-purity"
 "pen-2" 1.0 0 -13345367 true "" "plotxy ticks belief-purity-average - std-belief-purity"
+
+INPUTBOX
+209
+68
+305
+128
+seed
+0.0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
