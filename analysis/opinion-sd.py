@@ -1,9 +1,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# SET THESE BEFORE RUNNING
-seed = ""
-algorithm = ""
+seed = "47822"
+algorithm = "belief-local-1"
 folder = f'../results/seed-{seed}/{algorithm}/'
 
 # Define the range of tick values
@@ -30,3 +29,4 @@ plt.tight_layout()
 
 # Show the plot
 plt.savefig(folder + "opinion-sd.png")
+plt.show()
