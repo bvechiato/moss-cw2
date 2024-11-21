@@ -41,6 +41,16 @@ end
 ;;;;;;;;;;;;;
 ;;; PLOTS ;;;
 ;;;;;;;;;;;;;
+to update-opinion-sd
+  ask users [
+    if length following > 1 [
+      let local-opinion [belief] of turtle-set following
+      set opinion-sd standard-deviation local-opinion
+    ]
+  ]
+  
+end
+
 to update-opinion-distribution
   ask users [
     ;; if user has any followers

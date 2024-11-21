@@ -48,11 +48,11 @@ to update-belief [post-belief]
   set color rgb red-component green-component 0
 end
 
-
 to-report sample-beta
   py:set "alpha" 1.7
   py:set "beta_param" 6.0
-  py:run "mapped_sample = 2 * beta.rvs(alpha, beta_param)"
-  
+ 
+  py:run "mapped_sample = 2 * beta.rvs(alpha, beta_param, random_state=rng)"
+
   report py:runresult "mapped_sample"
 end

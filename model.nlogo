@@ -31,7 +31,7 @@ to setup
   set belief-purity-average mean [belief-purity] of users
   set std-belief-purity standard-deviation [belief-purity] of users
 
-  update-opinion-distribution
+  update-opinion-sd
   get-global-echo-chamber-evaluation
 end
 
@@ -109,7 +109,7 @@ to go
         ]
 
         ;; ADD TO SEEN LIST
-        set seen lput curr_tweet seen
+        ;; set seen lput curr_tweet seen
 
         set belief-purity-sum belief-purity-sum + abs(belief - tweet-belief)
       ]
@@ -119,7 +119,7 @@ to go
   ]
 
   ;; update echochamber tracking
-  ;; update-opinion-distribution
+  update-opinion-sd
   get-global-echo-chamber-evaluation
 
   ;; TWEET
@@ -148,6 +148,11 @@ end
 to setup-python
   py:setup py:python
   py:run "from scipy.stats import beta"
+  py:run "import numpy as np"
+  py:run "from scipy.stats import beta"
+
+  py:set "seed" 12345
+  py:run "rng = np.random.default_rng(seed)"
 end
 
 
@@ -156,29 +161,56 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 to-report determine-posts-viewed
   py:run "import numpy as np"
-  py:run "num_posts = np.random.negative_binomial(40, 0.5)"
+  py:run "num_posts = rng.negative_binomial(40, 0.5)" ; Use the seeded RNG]
+
   report py:runresult "num_posts"
 end
 
+to run-simulations-5-seeds
+  let seeds [47822 13523 31238 98424 64001]  ;; List of 5 seeds
+  foreach seeds [
+    curr-seed ->  ;; Set the seed for random number generation
+    run-simulations-one-algo curr-seed  ;; Call the run-simulations procedure with the current seed
+  ]
 
-to run-simulations
-  run-simulation 1 0 0 0 0 "belief-local-1"
-  run-simulation 0 1 0 0 0 "belief-global-1"
-  run-simulation 0 0 1 0 0 "chronological-1"
-  run-simulation 0 0 0 1 0 "randomised-1"
-  run-simulation 0 0 0 0 1 "popularity-1"
+  foreach seeds [
+    curr-seed ->  ;; Set the seed for random number generation
+    run-simulations-weighted-algo curr-seed  ;; Call the run-simulations procedure with the current seed
+  ]
+end
+
+to run-simulations-one-algo [set-seed]
+  run-simulation 1 0 0 0 0 "belief-local-1" set-seed
+  run-simulation 0 1 0 0 0 "belief-global-1" set-seed
+  run-simulation 0 0 1 0 0 "chronological-1" set-seed
+  run-simulation 0 0 0 1 0 "randomised-1" set-seed
+  run-simulation 0 0 0 0 1 "popularity-1" set-seed
+end
+
+to run-simulations-weighted-algo [set-seed]
+  run-simulation 0.5 0 0 0 0.5 "belief-local-0.5-popularity-0.5" set-seed
+  run-simulation 0.5 0 0 0.5 0 "belief-local-0.5-randomised-0.5" set-seed
+  run-simulation 0.5 0 0.5 0 0 "belief-local-0.5-chronological-0.5" set-seed
+  run-simulation 0.5 0.5 0 0 0 "belief-local-0.5-belief-global-0.5" set-seed
+
+  run-simulation 0 0.5 0 0 0.5 "belief-global-0.5-popularity-0.5" set-seed
+  run-simulation 0 0.5 0 0.5 0 "belief-global-0.5-randomised-0.5" set-seed
+  run-simulation 0 0 0.5 0 0.5 "chronological-0.5-popularity-0.5" set-seed
+  run-simulation 0 0 0.5 0.5 0 "chronological-0.5-randomised-0.5" set-seed
+
+  run-simulation 0 0 0 0.5 0.5 "randomised-0.5-popularity-0.5" set-seed
+  run-simulation 0.25 0 0.25 0.25 0.25 "all" set-seed
 end
 
 
-to run-simulation [belief-local-value belief-global-value chronological-value randomised-value popularity-value algo-name]
+to run-simulation [belief-local-value belief-global-value chronological-value randomised-value popularity-value algo-name set-seed]
   set belief-local belief-local-value
   set belief-global belief-global-value
   set chronological chronological-value
   set randomised randomised-value
   set popularity popularity-value
   set number-of-agents 500
-
-  set seed 47822
+  set seed set-seed
 
   setup
 
@@ -191,7 +223,6 @@ to run-simulation [belief-local-value belief-global-value chronological-value ra
     hide-link
   ]
 
-
   ;; Loop through different ticks (20, 40, 60, 80, 100)
   foreach [10 20 30 40 50] [
     tick-value ->
@@ -200,20 +231,24 @@ to run-simulation [belief-local-value belief-global-value chronological-value ra
     ]
 
     if ticks = tick-value [
-      export-user-opinion-sd tick-value algo-name seed
-      export-user-belief tick-value algo-name seed
+      export-user-opinion-sd tick-value algo-name set-seed
+      export-user-belief tick-value algo-name set-seed
     ]
   ]
 
   ;; Export final plots and interface
-  export-plot "Belief Purity" (word "/Users/bea/Downloads/moss-cw2/results/" seed "/" algo-name "/belief-purity.csv")
-  export-plot "Global Echo Chamber Eval" (word "/Users/bea/Downloads/moss-cw2/results/" seed "/" algo-name "/gec.csv")
-  export-interface (word "/Users/bea/Downloads/moss-cw2/results/" seed "/" algo-name "/interface.png")
+  export-plot "Belief Purity" (word "/Users/bea/Downloads/moss-cw2/results/seed-" set-seed "/" algo-name "/belief-purity.csv")
+  export-plot "Global Echo Chamber Eval" (word "/Users/bea/Downloads/moss-cw2/results/seed-" set-seed "/" algo-name "/gec.csv")
+  export-interface (word "/Users/bea/Downloads/moss-cw2/results/seed-" set-seed "/" algo-name "/interface.png")
 end
 
 
 to export-user-opinion-sd [at-tick algo-name set-seed]
-  let file-name (word "/Users/bea/Downloads/moss-cw2/results/" set-seed "/" algo-name "/opinion-sd-" at-tick ".csv")
+  let file-name (word "/Users/bea/Downloads/moss-cw2/results/seed-" set-seed "/" algo-name "/opinion-sd-" at-tick ".csv")
+
+  if file-exists? file-name [
+    file-delete file-name
+  ]
 
   file-open file-name
 
@@ -229,7 +264,12 @@ to export-user-opinion-sd [at-tick algo-name set-seed]
 end
 
 to export-user-belief [at-tick algo-name set-seed]
-  let file-name (word "/Users/bea/Downloads/moss-cw2/results/" set-seed "/" algo-name "/belief-" at-tick ".csv")
+  let file-name (word "/Users/bea/Downloads/moss-cw2/results/seed-" set-seed "/" algo-name "/belief-" at-tick ".csv")
+
+  if file-exists? file-name [
+    file-delete file-name
+  ]
+
   file-open file-name
 
   ;; Write headers
@@ -313,7 +353,7 @@ number-of-agents
 number-of-agents
 0
 1000
-1000.0
+500.0
 100
 1
 NIL
@@ -373,13 +413,13 @@ PLOT
 233
 397
 SD of opinion difference
-opinion difference
+NIL
 NIL
 0.0
 2.0
 0.0
 10.0
-false
+true
 false
 "set-plot-y-range 0 number-of-agents / 2" ""
 PENS
@@ -450,7 +490,7 @@ belief-local
 belief-local
 0
 1
-0.0
+0.25
 0.25
 1
 NIL
@@ -480,7 +520,7 @@ randomised
 randomised
 0
 1
-1.0
+0.25
 0.25
 1
 NIL
@@ -495,7 +535,7 @@ popularity
 popularity
 0
 1
-0.0
+0.25
 0.25
 1
 NIL
@@ -510,7 +550,7 @@ chronological
 chronological
 0
 1
-0.0
+0.25
 0.25
 1
 NIL
@@ -552,7 +592,7 @@ INPUTBOX
 305
 128
 seed
-0.0
+64001.0
 1
 0
 Number
