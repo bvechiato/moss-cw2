@@ -4,7 +4,7 @@ import pandas as pd
 # SET THESE BEFORE RUNNING
 seed = ""
 algorithm = ""
-folder = f'../results/{seed}/{algorithm}/'
+folder = f'../results/seed-{seed}/{algorithm}/'
 
 # Define the range of tick values
 ticks = range(10, 51, 10)  # 10, 20, 30, 40, 50

@@ -6,7 +6,7 @@ from io import StringIO
 seed = ""
 algorithm = ""
 
-folder = f'../results/{seed}/{algorithm}/'
+folder = f'../results/seed-{seed}/{algorithm}/'
 
 # Read and process the GEC data
 with open(folder + "gec.csv", 'r') as file:
